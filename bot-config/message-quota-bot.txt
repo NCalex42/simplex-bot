@@ -1,0 +1,31 @@
+# UTF8 without BOM
+
+# [mandatory] port where simplex-cli is running:
+port=
+
+# [mandatory] name of the group to process:
+group=
+
+# [mandatory] message quota per hour:
+message-quota-per-hour=
+
+# [mandatory] message quota per day:
+message-quota-per-day=
+
+# [mandatory] spam quota per hour (i.e. count of identical text messages):
+spam-quota-per-hour=
+
+# [mandatory] spam quota per day (i.e. count of identical text messages):
+spam-quota-per-day=
+
+# [optional] how long to sleep between checks (in seconds):
+sleep-time-seconds=
+
+# [optional] if downgrade of member should be announced to group ('true' or 'false'):
+silentmode=
+
+# [optional] comma separated list of contacts to report/log to:
+report-to-contacts=
+
+# [optional] comma separated list of groups to report/log to:
+report-to-groups=

@@ -1,0 +1,25 @@
+# UTF8 without BOM
+#
+# Moderate list: Messages with blacklisted content from this file will be moderated.
+#
+# Usage:
+# If line starts with '#' or line is blank --> will be ignored; if you want to blacklist messages starting with '#' use '"#'
+# If line starts with '@image' --> all images will be blacklisted
+# If line starts with '@video' --> all videos will be blacklisted
+# If line starts with '@file' --> all files will be blacklisted
+# If line starts with '@link' --> all messages of type 'link' (with preview) will be blacklisted
+# If line starts with '@voice' --> all voice messages will be blacklisted
+# If line starts with '@regex <regex>' --> all messages matching <regex> will be blacklisted
+# If line starts with '@user <user>' --> all messages from <user> will be blacklisted
+# If line contains other content --> all messages containing that content (ignoring case) will be blacklisted
+#
+# Example:
+#---------
+# @image
+# www.
+# @regex [abc]
+#---------
+# => would blacklist all images, all messages containing 'www.' ignoring the case & all messages that matches the regex '[abc]'
+#
+
+

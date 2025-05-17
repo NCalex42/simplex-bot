@@ -23,7 +23,9 @@ It currently contains modules for moderating public groups, but can be easily ex
 ## How to use it?
 Each module has one or more config files in the `bot-config` folder. Each config file name begins with the module name. If you want to disable a module, just rename or move its file(s).
 
-After entering all mandatory parameters into the config files and starting the simplex-cli in websocket mode, you can start the bot via the jar file from the `export` folder.
+After entering all mandatory parameters into the config files and starting the simplex-cli in websocket mode, you can start the bot via the `.jar` file from the `export` folder.
+
+Note: The `bot-config` folder must be located in your current working directory, which is typically the same directory as the `.jar` file.
 
 
 
@@ -31,3 +33,4 @@ After entering all mandatory parameters into the config files and starting the s
 - requires SimpleX cli-version (tested with 6.3.3)
 - requires Java >= 11
 - for developers: requires `org.json`
+
