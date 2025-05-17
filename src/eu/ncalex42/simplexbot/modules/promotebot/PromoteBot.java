@@ -1,0 +1,262 @@
+package eu.ncalex42.simplexbot.modules.promotebot;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import eu.ncalex42.simplexbot.TimeUtil;
+import eu.ncalex42.simplexbot.Util;
+import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.model.GroupMember;
+
+/**
+ * This module changes the role of every member in a given group from 'observer'
+ * to 'member'.
+ */
+public class PromoteBot implements Runnable {
+
+    private final Connection connection;
+    private final String groupToProcess;
+
+    private final int[] weekdaysToRun;
+    private final int[] hoursToRun;
+    private final int sleepTimeInMinutes;
+    private final int minWaitTimePerMemberInDays;
+
+    private final List<String> contactsForReporting;
+    private final List<String> groupsForReporting;
+
+    public static PromoteBot init(Path configFile) throws IOException {
+
+        int port = -1;
+        String groupToProcess = null;
+        int[] weekDaysToRun = null;
+        int[] hoursToRun = null;
+        int sleepTimeInMinutes = -59;
+        int minWaitTimePerMemberInDays = -1;
+        final List<String> contactsForReporting = new LinkedList<>();
+        final List<String> groupsForReporting = new LinkedList<>();
+
+        for (final String line : Files.lines(configFile, StandardCharsets.UTF_8).collect(Collectors.toList())) {
+
+            if (!line.contains("=")) {
+                continue;
+            }
+
+            final String[] splittedLine = line.split("=", 2);
+            final String key = splittedLine[0].strip();
+            final String value = splittedLine[1].strip();
+
+            switch (key.toLowerCase(Locale.US)) {
+
+            case PromoteBotConstants.CONFIG_PORT:
+                port = Integer.parseInt(value);
+                break;
+
+            case PromoteBotConstants.CONFIG_GROUP:
+                groupToProcess = value;
+                break;
+
+            case PromoteBotConstants.CONFIG_WEEKDAYS:
+                if (!value.isBlank()) {
+                    final String[] days = value.split(",");
+                    weekDaysToRun = new int[days.length];
+                    for (int i = 0; i < weekDaysToRun.length; i++) {
+                        weekDaysToRun[i] = Integer.parseInt(days[i].strip());
+                    }
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_HOURS:
+                if (!value.isBlank()) {
+                    final String[] hours = value.split(",");
+                    hoursToRun = new int[hours.length];
+                    for (int i = 0; i < hoursToRun.length; i++) {
+                        hoursToRun[i] = Integer.parseInt(hours[i].strip());
+                    }
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES:
+                if (!value.isBlank()) {
+                    sleepTimeInMinutes = Integer.parseInt(value);
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS:
+                if (!value.isBlank()) {
+                    minWaitTimePerMemberInDays = Integer.parseInt(value);
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS:
+                final String[] names = value.split(",");
+                for (final String name : names) {
+                    if (!name.isBlank()) {
+                        contactsForReporting.add(name.strip());
+                    }
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_REPORT_TO_GROUPS:
+                final String[] groups = value.split(",");
+                for (final String group : groups) {
+                    if (!group.isBlank()) {
+                        groupsForReporting.add(group.strip());
+                    }
+                }
+                break;
+
+            default: // ignore
+            }
+        }
+
+        if ((port < 0) || (null == groupToProcess) || groupToProcess.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Some mandatory config properties are missing or are invalid! Required are: '"
+                            + PromoteBotConstants.CONFIG_PORT + "' and '" + PromoteBotConstants.CONFIG_GROUP + "'");
+        }
+
+        if ((null == weekDaysToRun) || (null == hoursToRun) || (sleepTimeInMinutes < 0)
+                || (minWaitTimePerMemberInDays < 0)) {
+            Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
+        }
+
+        Connection.initSimplexConnection(port);
+        return new PromoteBot(Connection.get(port), groupToProcess, weekDaysToRun, hoursToRun, sleepTimeInMinutes,
+                minWaitTimePerMemberInDays, contactsForReporting, groupsForReporting);
+    }
+
+    public PromoteBot(Connection connection, String groupToProcess, int[] weekdaysToRun, int[] hoursToRun,
+            int sleepTimeInMinutes, int minWaitTimePerMemberInDays, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
+        this.connection = connection;
+        this.groupToProcess = groupToProcess;
+        this.weekdaysToRun = weekdaysToRun;
+        this.hoursToRun = hoursToRun;
+        this.sleepTimeInMinutes = Math.abs(sleepTimeInMinutes);
+        this.minWaitTimePerMemberInDays = Math.abs(minWaitTimePerMemberInDays);
+        this.contactsForReporting = contactsForReporting;
+        this.groupsForReporting = groupsForReporting;
+    }
+
+    @Override
+    public void run() {
+
+        Util.log(PromoteBot.class.getSimpleName() + " has started with config: " + PromoteBotConstants.CONFIG_PORT + "="
+                + connection.getPort() + " " + PromoteBotConstants.CONFIG_GROUP + "='" + groupToProcess + "' "
+                + PromoteBotConstants.CONFIG_WEEKDAYS + "=" + Util.intArrayToString(weekdaysToRun) + " "
+                + PromoteBotConstants.CONFIG_HOURS + "=" + Util.intArrayToString(hoursToRun) + " "
+                + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "=" + sleepTimeInMinutes + " "
+                + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "=" + minWaitTimePerMemberInDays + " "
+                + PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS + "=" + Util.listToString(contactsForReporting) + " "
+                + PromoteBotConstants.CONFIG_REPORT_TO_GROUPS + "=" + Util.listToString(groupsForReporting), connection,
+                contactsForReporting, groupsForReporting);
+
+        try {
+            while (true) {
+
+                if (shouldRun()) {
+
+                    Util.log(
+                            "Promoting members in group '" + groupToProcess + "' from '" + GroupMember.ROLE_OBSERVER
+                                    + "' to '" + GroupMember.ROLE_MEMBER + "'",
+                            connection, contactsForReporting, groupsForReporting);
+
+                    try {
+
+                        int countOfPromotedMembers = 0;
+                        final List<GroupMember> members = connection.getGroupMembers(groupToProcess,
+                                contactsForReporting, groupsForReporting);
+
+                        final long nowInSeconds = TimeUtil.getUtcSeconds();
+                        for (final GroupMember member : members) {
+
+                            // ignore members that left:
+                            if (!member.isPresent()) {
+                                continue;
+                            }
+
+                            if (!GroupMember.ROLE_OBSERVER.equalsIgnoreCase(member.getRole())) {
+                                continue;
+                            }
+
+                            final String memberConnectedTs = member.getCreatedAt();
+                            if ((null != memberConnectedTs) && !memberConnectedTs.isBlank()) {
+                                if (Math.abs(nowInSeconds - TimeUtil.timestampWithNanosToUtcSeconds(
+                                        memberConnectedTs)) < (minWaitTimePerMemberInDays * TimeUtil.SECONDS_PER_DAY)) {
+                                    continue;
+                                }
+                            } else {
+                                Util.logWarning(
+                                        "Member *'" + member.getDisplayName() + "'* [" + member.getLocalName()
+                                                + "] in group *'" + groupToProcess + "'* is not connected!",
+                                        connection, contactsForReporting, groupsForReporting);
+                            }
+
+                            if (!connection.changeGroupMemberRole(groupToProcess, member.getLocalName(),
+                                    GroupMember.ROLE_MEMBER, contactsForReporting, groupsForReporting)) {
+                                continue;
+                            }
+
+                            countOfPromotedMembers++;
+                        }
+
+                        Util.log("!2 Promoted! " + countOfPromotedMembers + " member(s)", connection,
+                                contactsForReporting, groupsForReporting);
+
+                    } catch (final Exception ex) {
+                        Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
+                                groupsForReporting);
+                        ex.printStackTrace();
+                    }
+                }
+
+                Thread.sleep(sleepTimeInMinutes * 60 * 1000);
+            }
+        } catch (final Exception ex) {
+            Util.logError(PromoteBot.class.getSimpleName() + " has finished with error: " + ex.toString(), connection,
+                    contactsForReporting, groupsForReporting);
+            ex.printStackTrace();
+        }
+    }
+
+    private boolean shouldRun() {
+        return checkWeekdays() && checkHours();
+    }
+
+    private boolean checkWeekdays() {
+
+        if (null == weekdaysToRun) {
+            return true;
+        }
+
+        for (final int day : weekdaysToRun) {
+            if (TimeUtil.getDayOfWeek() == day) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean checkHours() {
+
+        if (null == hoursToRun) {
+            return true;
+        }
+
+        for (final int hour : hoursToRun) {
+            if (TimeUtil.getHourOfDay() == hour) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

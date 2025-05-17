@@ -1,0 +1,25 @@
+# UTF8 without BOM
+
+# [mandatory] port where simplex-cli is running:
+port=
+
+# [mandatory] name of the group to process:
+group=
+
+# [optional] weekdays to run (e.g. 1= Monday, 7=Sunday) as comma separated list of numbers (1-7):
+weekdays=
+
+# [optional] hours to run (e.g. "1" means between 1 and 2 o'clock) as comma separated list of numbers (0-23):
+hours=
+
+# [optional] how long to sleep between checks (in minutes):
+sleep-time-minutes=
+
+# [optional] minimal waiting period for new members before promotion (in days):
+min-wait-time-days-per-member=
+
+# [optional] comma separated list of contacts to report/log to:
+report-to-contacts=
+
+# [optional] comma separated list of groups to report/log to:
+report-to-groups=

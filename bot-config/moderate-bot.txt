@@ -1,0 +1,16 @@
+# UTF8 without BOM
+
+# [mandatory] port where simplex-cli is running:
+port=
+
+# [mandatory] name of the group to process:
+group=
+
+# [optional] how long to sleep between checks (in seconds):
+sleep-time-seconds=
+
+# [optional] comma separated list of contacts to report/log to:
+report-to-contacts=
+
+# [optional] comma separated list of groups to report/log to:
+report-to-groups=
