@@ -6,6 +6,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import eu.ncalex42.simplexbot.Util;
+import eu.ncalex42.simplexbot.simplex.Connection;
 import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 
 public class GroupMember {
@@ -91,16 +93,34 @@ public class GroupMember {
         return false;
     }
 
-    public static List<GroupMember> parseMembers(JSONObject groupMemberResponse) {
+    public static List<GroupMember> parseMembers(JSONObject groupMemberResponse, Connection simplexConnection,
+            List<String> contactsForReporting, List<String> groupsForReporting) {
 
-        final String type = groupMemberResponse.getJSONObject(SimplexConstants.KEY_RESP)
-                .getString(SimplexConstants.KEY_TYPE);
+        JSONObject resp = groupMemberResponse.getJSONObject(SimplexConstants.KEY_RESP);
+        String type;
+        final JSONObject left = resp.optJSONObject(SimplexConstants.KEY_LEFT);
+        if (null == left) {
+            final JSONObject right = resp.optJSONObject(SimplexConstants.KEY_RIGHT);
+            if (null == right) {
+                // SimpleX < 6.4
+                type = resp.getString(SimplexConstants.KEY_TYPE);
+            } else {
+                // SimpleX >= 6.4
+                type = right.getString(SimplexConstants.KEY_TYPE);
+                resp = right;
+            }
+        } else {
+            // SimpleX >= 6.4
+            type = left.getString(SimplexConstants.KEY_TYPE);
+            resp = left;
+        }
         if (!SimplexConstants.VALUE_GROUP_MEMBERS.equals(type)) {
+            Util.logError("Unexpected type: " + type, simplexConnection, contactsForReporting, groupsForReporting);
             return null;
         }
 
-        final JSONArray members = groupMemberResponse.getJSONObject(SimplexConstants.KEY_RESP)
-                .getJSONObject(SimplexConstants.KEY_GROUP).getJSONArray(SimplexConstants.KEY_MEMBERS);
+        final JSONArray members = resp.getJSONObject(SimplexConstants.KEY_GROUP)
+                .getJSONArray(SimplexConstants.KEY_MEMBERS);
 
         final List<GroupMember> result = new LinkedList<>();
         for (int i = 0; i < members.length(); i++) {

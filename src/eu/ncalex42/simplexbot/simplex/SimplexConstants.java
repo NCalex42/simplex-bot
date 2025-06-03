@@ -5,6 +5,8 @@ public class SimplexConstants {
     public static final String KEY_CORR_ID = "corrId";
     public static final String KEY_CMD = "cmd";
     public static final String KEY_RESP = "resp";
+    public static final String KEY_RIGHT = "Right";
+    public static final String KEY_LEFT = "Left";
     public static final String KEY_TYPE = "type";
     public static final String KEY_CHAT_ERROR = "chatError";
     public static final String KEY_GROUP = "group";
