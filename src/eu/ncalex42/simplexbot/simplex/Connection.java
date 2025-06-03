@@ -134,7 +134,8 @@ public class Connection {
             throw new IllegalStateException("Error while retrieving group members!");
         }
 
-        final List<GroupMember> members = GroupMember.parseMembers(groupMembersResponse);
+        final List<GroupMember> members = GroupMember.parseMembers(groupMembersResponse, this, contactsForReporting,
+                groupsForReporting);
         if (null == members) {
             Util.logError("Unexpected response for 'getGroupMembers': " + groupMembersResponse, this,
                     contactsForReporting, groupsForReporting);
@@ -226,16 +227,21 @@ public class Connection {
      * @param groups     list of groups to send message to
      */
     public void logToBotAdmins(String logMessage, List<String> contacts, List<String> groups) {
+        sendToContactsAndGroups(logMessage, contacts, groups, null, null);
+    }
+
+    public void sendToContactsAndGroups(String message, List<String> contacts, List<String> groups,
+            List<String> contactsForReporting, List<String> groupsForReporting) {
 
         if (null != contacts) {
             for (final String contact : contacts) {
-                sendToContact(contact, logMessage, null, null);
+                sendToContact(contact, message, contactsForReporting, groupsForReporting);
             }
         }
 
         if (null != groups) {
             for (final String group : groups) {
-                sendToGroup(group, logMessage, null, null);
+                sendToGroup(group, message, contactsForReporting, groupsForReporting);
             }
         }
     }
@@ -312,20 +318,37 @@ public class Connection {
         return null;
     }
 
-    private String retrieveError(JSONObject response) {
+    private String retrieveError(JSONObject simplexResponse) {
 
-        if (null == response) {
+        if (null == simplexResponse) {
             return "ERROR: No valid response received!";
         }
 
-        final JSONObject resp = response.optJSONObject(SimplexConstants.KEY_RESP);
+        JSONObject resp = simplexResponse.optJSONObject(SimplexConstants.KEY_RESP);
         if (null == resp) {
-            return "ERROR: Response does not contain '" + SimplexConstants.KEY_RESP + "':" + response.toString();
+            return "ERROR: Response does not contain '" + SimplexConstants.KEY_RESP + "':" + simplexResponse.toString();
         }
 
-        final String type = resp.optString(SimplexConstants.KEY_TYPE);
-        if (null == type) {
-            return "ERROR: Response does not contain '" + SimplexConstants.KEY_TYPE + "':" + response.toString();
+        String type;
+        final JSONObject left = resp.optJSONObject(SimplexConstants.KEY_LEFT);
+        if (null == left) {
+            final JSONObject right = resp.optJSONObject(SimplexConstants.KEY_RIGHT);
+            if (null == right) {
+                // SimpleX < 6.4
+                type = resp.optString(SimplexConstants.KEY_TYPE);
+            } else {
+                // SimpleX >= 6.4
+                type = right.optString(SimplexConstants.KEY_TYPE);
+                resp = right;
+            }
+        } else {
+            // SimpleX >= 6.4
+            type = left.optString(SimplexConstants.KEY_TYPE);
+            resp = left;
+        }
+
+        if ((null == type) || type.isBlank()) {
+            return "ERROR: Response does not contain '" + SimplexConstants.KEY_TYPE + "':" + simplexResponse.toString();
         }
 
         if (SimplexConstants.VALUE_CHAT_CMD_ERROR.equals(type)) {

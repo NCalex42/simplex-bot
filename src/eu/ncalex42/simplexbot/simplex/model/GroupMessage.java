@@ -31,19 +31,35 @@ public class GroupMessage {
     }
 
     public static List<GroupMessage> parseNewMessagesFromGroup(JSONObject tailResponse,
-            List<GroupMessage> alreadyProcessedMessages, boolean retrieveDeprecatedMessages, Connection connection,
-            List<String> contactsForReporting, List<String> groupsForReporting) {
+            List<GroupMessage> alreadyProcessedMessages, boolean retrieveDeprecatedMessages,
+            Connection simplexConnection, List<String> contactsForReporting, List<String> groupsForReporting) {
 
-        final String type = tailResponse.getJSONObject(SimplexConstants.KEY_RESP).getString(SimplexConstants.KEY_TYPE);
+        JSONObject resp = tailResponse.getJSONObject(SimplexConstants.KEY_RESP);
+        String type;
+        final JSONObject left = resp.optJSONObject(SimplexConstants.KEY_LEFT);
+        if (null == left) {
+            final JSONObject right = resp.optJSONObject(SimplexConstants.KEY_RIGHT);
+            if (null == right) {
+                // SimpleX < 6.4
+                type = resp.getString(SimplexConstants.KEY_TYPE);
+            } else {
+                // SimpleX >= 6.4
+                type = right.getString(SimplexConstants.KEY_TYPE);
+                resp = right;
+            }
+        } else {
+            // SimpleX >= 6.4
+            type = left.getString(SimplexConstants.KEY_TYPE);
+            resp = left;
+        }
         if (!SimplexConstants.VALUE_CHAT_ITEMS.equals(type)) {
-            Util.logError("Unexpected type: " + type, connection, contactsForReporting, groupsForReporting);
+            Util.logError("Unexpected type: " + type, simplexConnection, contactsForReporting, groupsForReporting);
             return null;
         }
 
         final boolean firstRun = alreadyProcessedMessages.isEmpty();
 
-        final JSONArray chatItems = tailResponse.getJSONObject(SimplexConstants.KEY_RESP)
-                .getJSONArray(SimplexConstants.KEY_CHAT_ITEMS);
+        final JSONArray chatItems = resp.getJSONArray(SimplexConstants.KEY_CHAT_ITEMS);
 
         final List<GroupMessage> result = new LinkedList<>();
         for (int i = 0; i < chatItems.length(); i++) {
