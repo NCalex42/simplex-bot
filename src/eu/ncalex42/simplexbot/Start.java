@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import eu.ncalex42.simplexbot.modules.ai.summarybot.SummaryBot;
+import eu.ncalex42.simplexbot.modules.ai.summarybot.SummaryBotConstants;
 import eu.ncalex42.simplexbot.modules.messagequotabot.MessageQuotaBot;
 import eu.ncalex42.simplexbot.modules.messagequotabot.MessageQuotaBotConstants;
 import eu.ncalex42.simplexbot.modules.moderatebot.ModerateBot;
@@ -16,12 +18,12 @@ import eu.ncalex42.simplexbot.modules.promotebot.PromoteBotConstants;
 
 public class Start {
 
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
     private static final String CONFIG_DIRECTORY = "bot-config";
 
     public static void main(String[] args) {
 
-        Util.log("SimpleX-bot " + VERSION + " started at " + TimeUtil.formatUtcTimeStamp() + " ヽ(♡‿♡)ノ", null, null,
+        Util.log("SimpleX-bot " + VERSION + " started at " + TimeUtil.formatUtcTimestamp() + " ヽ(♡‿♡)ノ", null, null,
                 null);
 
         final List<Runnable> modules = initModules();
@@ -33,7 +35,7 @@ public class Start {
 
         joinModuleThreads(moduleThreads);
 
-        Util.log("SimpleX-bot finished at " + TimeUtil.formatUtcTimeStamp(), null, null, null);
+        Util.log("SimpleX-bot finished at " + TimeUtil.formatUtcTimestamp(), null, null, null);
     }
 
     private static List<Runnable> initModules() {
@@ -56,6 +58,10 @@ public class Start {
 
                 case MessageQuotaBotConstants.CFG_FILE_NAME:
                     modules.add(MessageQuotaBot.init(filePath));
+                    break;
+
+                case SummaryBotConstants.CFG_FILE_NAME:
+                    modules.add(SummaryBot.init(filePath));
                     break;
 
                 // you can add your custom modules here ...

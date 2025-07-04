@@ -8,16 +8,19 @@ import java.time.format.DateTimeFormatter;
 
 public class TimeUtil {
 
-    public static final long SECONDS_PER_DAY = 60L * 60L * 24L;
+    public static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
+    public static final long MILLISECONDS_PER_SECOND = 1000L;
     public static final long SECONDS_PER_HOUR = 60L * 60L;
+    public static final long SECONDS_PER_DAY = 60L * 60L * 24L;
+    public static final long SECONDS_PER_WEEK = 60L * 60L * 24L * 7L;
 
-    public static String formatTimeStamp() {
+    public static String formatTimestamp() {
 
-        final LocalDateTime timeStamp = LocalDateTime.now();
-        return "[" + timeStamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "]";
+        final LocalDateTime timestamp = LocalDateTime.now();
+        return "[" + timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "]";
     }
 
-    public static String formatUtcTimeStamp() {
+    public static String formatUtcTimestamp() {
 
         return "[" + getUtcTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " UTC]";
     }
@@ -29,8 +32,8 @@ public class TimeUtil {
 
     public static ZonedDateTime getUtcTime() {
 
-        final ZonedDateTime timeStamp = ZonedDateTime.now();
-        return timeStamp.withZoneSameInstant(ZoneId.of("Z"));
+        final ZonedDateTime timestamp = ZonedDateTime.now();
+        return timestamp.withZoneSameInstant(ZoneId.of("Z"));
     }
 
     public static long timestampToUtcSeconds(String timestamp) {
@@ -54,13 +57,22 @@ public class TimeUtil {
      */
     public static int getDayOfWeek() {
 
-        final LocalDateTime timeStamp = LocalDateTime.now();
-        return timeStamp.getDayOfWeek().getValue();
+        final LocalDateTime timestamp = LocalDateTime.now();
+        return timestamp.getDayOfWeek().getValue();
     }
 
     public static int getHourOfDay() {
 
-        final LocalDateTime timeStamp = LocalDateTime.now();
-        return timeStamp.getHour();
+        final LocalDateTime timestamp = LocalDateTime.now();
+        return timestamp.getHour();
+    }
+
+    public static String getDate() {
+
+        final LocalDateTime timestamp = LocalDateTime.now();
+        final int year = timestamp.getYear();
+        final int month = timestamp.getMonthValue();
+        final int day = timestamp.getDayOfMonth();
+        return year + "-" + month + "-" + day;
     }
 }

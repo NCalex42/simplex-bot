@@ -11,15 +11,17 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
 
-public class Connection {
+public class SimplexConnection {
 
-    private static ConcurrentHashMap<Integer, Connection> connections = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Integer, SimplexConnection> connections = new ConcurrentHashMap<>();
 
     private final int port;
     private volatile WebSocket websocket;
@@ -31,18 +33,18 @@ public class Connection {
             return;
         }
 
-        final Connection connection = new Connection(port);
+        final SimplexConnection connection = new SimplexConnection(port);
         connections.put(port, connection);
         connection.connect();
 
         Util.log("Connected to port " + port, null, null, null);
     }
 
-    public static Connection get(int port) {
+    public static SimplexConnection get(int port) {
         return connections.get(port);
     }
 
-    private Connection(int port) {
+    private SimplexConnection(int port) {
         this.port = port;
     }
 
@@ -134,19 +136,28 @@ public class Connection {
             throw new IllegalStateException("Error while retrieving group members!");
         }
 
-        final List<GroupMember> members = GroupMember.parseMembers(groupMembersResponse, this, contactsForReporting,
-                groupsForReporting);
-        if (null == members) {
-            Util.logError("Unexpected response for 'getGroupMembers': " + groupMembersResponse, this,
+        try {
+
+            final List<GroupMember> members = GroupMember.parseGroupMembers(groupMembersResponse, this,
                     contactsForReporting, groupsForReporting);
-            throw new IllegalStateException("Unexpected response!");
-        }
+            if (null == members) {
+                Util.logError("Unexpected response for 'getGroupMembers':\n" + groupMembersResponse.toString(2), this,
+                        contactsForReporting, groupsForReporting);
+                throw new IllegalStateException("Unexpected response!");
+            }
 
-        if (members.isEmpty()) {
-            throw new IllegalStateException("Empty group member list!");
-        }
+            if (members.isEmpty()) {
+                throw new IllegalStateException("Empty group member list!");
+            }
 
-        return members;
+            return members;
+
+        } catch (final JSONException jsonException) {
+            Util.logError(Util.getStackTraceAsString(jsonException), this, contactsForReporting, groupsForReporting);
+            Util.logError("Unexpected JSON:\n" + groupMembersResponse.toString(2), this, contactsForReporting,
+                    groupsForReporting);
+            throw new IllegalStateException("Unexpected JSON!");
+        }
     }
 
     public boolean changeGroupMemberRole(String groupName, String memberName, String role,
@@ -163,9 +174,15 @@ public class Connection {
 
     public List<GroupMessage> getNewGroupMessages(String groupName, List<GroupMessage> alreadyProcessedMessages,
             boolean retrieveDeprecatedMessages, List<String> contactsForReporting, List<String> groupsForReporting) {
+        return getNewGroupMessages(groupName, alreadyProcessedMessages, retrieveDeprecatedMessages,
+                GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE, contactsForReporting, groupsForReporting);
+    }
 
-        final JSONObject tailResponse = apiGetLatestMessagesFromGroup(groupName,
-                GroupMessage.NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
+    public List<GroupMessage> getNewGroupMessages(String groupName, List<GroupMessage> alreadyProcessedMessages,
+            boolean retrieveDeprecatedMessages, int numberOfMessagesToRetrieve, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
+
+        final JSONObject tailResponse = apiGetLatestMessagesFromGroup(groupName, numberOfMessagesToRetrieve);
 
         final String tailErrorMessage = retrieveError(tailResponse);
         if (null != tailErrorMessage) {
@@ -173,14 +190,24 @@ public class Connection {
             return List.of();
         }
 
-        final List<GroupMessage> newMessages = GroupMessage.parseNewMessagesFromGroup(tailResponse,
-                alreadyProcessedMessages, retrieveDeprecatedMessages, this, contactsForReporting, groupsForReporting);
-        if (null == newMessages) {
-            Util.logError("Unexpected response for 'getNewGroupMessages': " + tailResponse, this, contactsForReporting,
+        try {
+
+            final List<GroupMessage> newMessages = GroupMessage.parseNewMessagesFromGroup(tailResponse,
+                    alreadyProcessedMessages, retrieveDeprecatedMessages, numberOfMessagesToRetrieve, this,
+                    contactsForReporting, groupsForReporting);
+            if (null == newMessages) {
+                Util.logError("Unexpected response for 'getNewGroupMessages':\n" + tailResponse.toString(2), this,
+                        contactsForReporting, groupsForReporting);
+                throw new IllegalStateException("Unexpected response!");
+            }
+            return newMessages;
+
+        } catch (final JSONException jsonException) {
+            Util.logError(Util.getStackTraceAsString(jsonException), this, contactsForReporting, groupsForReporting);
+            Util.logError("Unexpected JSON:\n" + tailResponse.toString(2), this, contactsForReporting,
                     groupsForReporting);
-            throw new IllegalStateException("Unexpected response!");
+            throw new IllegalStateException("Unexpected JSON!");
         }
-        return newMessages;
     }
 
     public boolean moderateGroupMessage(long groupId, long messageId, List<String> contactsForReporting,
@@ -292,7 +319,7 @@ public class Connection {
         websocket.sendText(request.toString(), true);
 
         final long startTime = System.currentTimeMillis();
-        while ((System.currentTimeMillis() - startTime) < (60L * 1000L)) { // 60 seconds timeout!
+        while ((System.currentTimeMillis() - startTime) < (TimeUtil.MILLISECONDS_PER_MINUTE)) { // 60 seconds timeout!
             final String responseString = responses.poll();
 
             if (null != responseString) {

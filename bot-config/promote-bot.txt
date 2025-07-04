@@ -6,10 +6,14 @@ port=
 # [mandatory] name of the group to process:
 group=
 
-# [optional] weekdays to run (e.g. 1= Monday, 7=Sunday) as comma separated list of numbers (1-7):
+
+
+# [optional] weekdays to run (i.e. 1=Monday, 7=Sunday) as comma separated list of numbers (1-7);
+# to disable use "-1" (without the quotes), to always run leave empty:
 weekdays=
 
-# [optional] hours to run (e.g. "1" means between 1 and 2 o'clock) as comma separated list of numbers (0-23):
+# [optional] hours to run, e.g. "1" (without the quotes) means between 1 and 2 o'clock, as comma separated list of numbers (0-23);
+# to disable use "-1" (without the quotes), to always run leave empty:
 hours=
 
 # [optional] how long to sleep between checks (in minutes):

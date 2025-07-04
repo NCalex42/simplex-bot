@@ -4,10 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import eu.ncalex42.simplexbot.Util;
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 
 public class GroupMember {
@@ -93,8 +94,8 @@ public class GroupMember {
         return false;
     }
 
-    public static List<GroupMember> parseMembers(JSONObject groupMemberResponse, Connection simplexConnection,
-            List<String> contactsForReporting, List<String> groupsForReporting) {
+    public static List<GroupMember> parseGroupMembers(JSONObject groupMemberResponse,
+            SimplexConnection simplexConnection, List<String> contactsForReporting, List<String> groupsForReporting) {
 
         JSONObject resp = groupMemberResponse.getJSONObject(SimplexConstants.KEY_RESP);
         String type;
@@ -124,19 +125,30 @@ public class GroupMember {
 
         final List<GroupMember> result = new LinkedList<>();
         for (int i = 0; i < members.length(); i++) {
-            final JSONObject member = members.getJSONObject(i);
-            final String localDisplayName = member.getString(SimplexConstants.KEY_LOCAL_DISPLAY_NAME);
-            final String displayName = member.getJSONObject(SimplexConstants.KEY_MEMBER_PROFILE)
-                    .getString(SimplexConstants.KEY_DISPLAY_NAME);
-            final long groupMemberId = member.getLong(SimplexConstants.KEY_GROUP_MEMBER_ID);
-            final String role = member.getString(SimplexConstants.KEY_MEMBER_ROLE);
-            final String status = member.getString(SimplexConstants.KEY_MEMBER_STATUS);
-            final boolean blockedByAdmin = member.getBoolean(SimplexConstants.KEY_BLOCKED_BY_ADMIN);
-            final String createdAt = member.optString(SimplexConstants.KEY_CREATED_AT);
-            result.add(new GroupMember(localDisplayName, displayName, groupMemberId, role, status, blockedByAdmin,
-                    createdAt));
+            try {
+                result.add(parseGroupMember(members.getJSONObject(i)));
+            } catch (final JSONException jsonException) {
+                Util.logError(Util.getStackTraceAsString(jsonException), simplexConnection, contactsForReporting,
+                        groupsForReporting);
+                Util.logError("Unexpected JSON:\n" + members.getJSONObject(i).toString(2), simplexConnection,
+                        contactsForReporting, groupsForReporting);
+                throw new IllegalStateException("Unexpected JSON!");
+            }
         }
 
         return result;
+    }
+
+    static GroupMember parseGroupMember(JSONObject groupMemberJson) {
+
+        final String localDisplayName = groupMemberJson.getString(SimplexConstants.KEY_LOCAL_DISPLAY_NAME);
+        final String displayName = groupMemberJson.getJSONObject(SimplexConstants.KEY_MEMBER_PROFILE)
+                .getString(SimplexConstants.KEY_DISPLAY_NAME);
+        final long groupMemberId = groupMemberJson.getLong(SimplexConstants.KEY_GROUP_MEMBER_ID);
+        final String role = groupMemberJson.getString(SimplexConstants.KEY_MEMBER_ROLE);
+        final String status = groupMemberJson.getString(SimplexConstants.KEY_MEMBER_STATUS);
+        final boolean blockedByAdmin = groupMemberJson.getBoolean(SimplexConstants.KEY_BLOCKED_BY_ADMIN);
+        final String createdAt = groupMemberJson.optString(SimplexConstants.KEY_CREATED_AT);
+        return new GroupMember(localDisplayName, displayName, groupMemberId, role, status, blockedByAdmin, createdAt);
     }
 }
