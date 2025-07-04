@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
 
@@ -24,7 +24,7 @@ import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
  */
 public class MessageQuotaBot implements Runnable {
 
-    private final Connection connection;
+    private final SimplexConnection simplexConnection;
     private final String groupToProcess;
     private final int sleepTimeInSeconds;
 
@@ -48,7 +48,7 @@ public class MessageQuotaBot implements Runnable {
         int spamQuotaPerHour = -1;
         int spamQuotaPerDay = -1;
         int sleepTimeInSeconds = -30;
-        boolean silentmode = true;
+        String silentmode = "";
         final List<String> contactsForReporting = new LinkedList<>();
         final List<String> groupsForReporting = new LinkedList<>();
 
@@ -95,9 +95,7 @@ public class MessageQuotaBot implements Runnable {
                 break;
 
             case MessageQuotaBotConstants.CONFIG_SILENTMODE:
-                if ("false".equalsIgnoreCase(value)) {
-                    silentmode = false;
-                }
+                silentmode = value;
                 break;
 
             case MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS:
@@ -133,27 +131,28 @@ public class MessageQuotaBot implements Runnable {
                             + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "'");
         }
 
-        if (sleepTimeInSeconds < 0) {
+        if ((sleepTimeInSeconds < 0)
+                || (!silentmode.equalsIgnoreCase("true") && !silentmode.equalsIgnoreCase("false"))) {
             Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
-        Connection.initSimplexConnection(port);
-        return new MessageQuotaBot(Connection.get(port), groupToProcess, messageQuotaPerHour, messageQuotaPerDay,
+        SimplexConnection.initSimplexConnection(port);
+        return new MessageQuotaBot(SimplexConnection.get(port), groupToProcess, messageQuotaPerHour, messageQuotaPerDay,
                 spamQuotaPerHour, spamQuotaPerDay, sleepTimeInSeconds, silentmode, contactsForReporting,
                 groupsForReporting);
     }
 
-    public MessageQuotaBot(Connection connection, String groupToProcess, int messageQuotaPerHour,
+    public MessageQuotaBot(SimplexConnection simplexConnection, String groupToProcess, int messageQuotaPerHour,
             int messageQuotaPerDay, int spamQuotaPerHour, int spamQuotaPerDay, int sleepTimeInSeconds,
-            boolean silentMode, List<String> contactsForReporting, List<String> groupsForReporting) {
-        this.connection = connection;
+            String silentMode, List<String> contactsForReporting, List<String> groupsForReporting) {
+        this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.messageQuotaPerHour = messageQuotaPerHour;
         this.messageQuotaPerDay = messageQuotaPerDay;
         this.spamQuotaPerHour = spamQuotaPerHour;
         this.spamQuotaPerDay = spamQuotaPerDay;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
-        this.silentMode = silentMode;
+        this.silentMode = silentMode.equalsIgnoreCase("false") ? false : true;
         this.contactsForReporting = contactsForReporting;
         this.groupsForReporting = groupsForReporting;
     }
@@ -161,18 +160,18 @@ public class MessageQuotaBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(MessageQuotaBot.class.getSimpleName() + " has started with config: "
-                + MessageQuotaBotConstants.CONFIG_PORT + "=" + connection.getPort() + " "
-                + MessageQuotaBotConstants.CONFIG_GROUP + "='" + groupToProcess + "' "
-                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "=" + messageQuotaPerHour + " "
-                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "=" + messageQuotaPerDay + " "
-                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "=" + spamQuotaPerHour + " "
-                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "=" + spamQuotaPerDay + " "
-                + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "=" + sleepTimeInSeconds + " "
-                + MessageQuotaBotConstants.CONFIG_SILENTMODE + "=" + silentMode + " "
-                + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "=" + Util.listToString(contactsForReporting)
-                + " " + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS + "=" + Util.listToString(groupsForReporting),
-                connection, contactsForReporting, groupsForReporting);
+        Util.log(MessageQuotaBot.class.getSimpleName() + " has started with config: *"
+                + MessageQuotaBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
+                + MessageQuotaBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
+                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "*=" + messageQuotaPerHour + " *"
+                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "*=" + messageQuotaPerDay + " *"
+                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "*=" + spamQuotaPerHour + " *"
+                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "*=" + spamQuotaPerDay + " *"
+                + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
+                + MessageQuotaBotConstants.CONFIG_SILENTMODE + "*=" + silentMode + " *"
+                + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
+                + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS + "*="
+                + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting, groupsForReporting);
 
         final List<GroupMessage> alreadyProcessedMessages = new LinkedList<>();
 
@@ -180,7 +179,7 @@ public class MessageQuotaBot implements Runnable {
             while (true) {
                 try {
 
-                    final List<GroupMessage> newMessages = connection.getNewGroupMessages(groupToProcess,
+                    final List<GroupMessage> newMessages = simplexConnection.getNewGroupMessages(groupToProcess,
                             alreadyProcessedMessages, true, contactsForReporting, groupsForReporting);
 
                     if (!newMessages.isEmpty()) {
@@ -189,9 +188,8 @@ public class MessageQuotaBot implements Runnable {
                             try {
                                 addNewMessage(message);
                             } catch (final Exception ex) {
-                                Util.logError("Unexpected exception: " + ex.toString(), connection,
-                                        contactsForReporting, groupsForReporting);
-                                ex.printStackTrace();
+                                Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex),
+                                        simplexConnection, contactsForReporting, groupsForReporting);
                             }
                         }
 
@@ -199,24 +197,24 @@ public class MessageQuotaBot implements Runnable {
                     }
 
                 } catch (final Exception ex) {
-                    Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                            groupsForReporting);
-                    ex.printStackTrace();
+                    Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                            contactsForReporting, groupsForReporting);
                 }
 
-                Thread.sleep(sleepTimeInSeconds * 1000);
+                Thread.sleep(sleepTimeInSeconds * TimeUtil.MILLISECONDS_PER_SECOND);
             }
 
         } catch (final Exception ex) {
-            Util.logError(MessageQuotaBot.class.getSimpleName() + " has finished with error: " + ex.toString(),
-                    connection, contactsForReporting, groupsForReporting);
-            ex.printStackTrace();
+            Util.logError(
+                    MessageQuotaBot.class.getSimpleName() + " has finished with error: "
+                            + Util.getStackTraceAsString(ex),
+                    simplexConnection, contactsForReporting, groupsForReporting);
         }
     }
 
     private void addNewMessage(GroupMessage message) {
 
-        final GroupMember member = message.getUser();
+        final GroupMember member = message.getMember();
         List<GroupMessage> messageListOfMember = quotaRecord.get(member);
         if (null == messageListOfMember) {
             messageListOfMember = new LinkedList<>();
@@ -244,14 +242,14 @@ public class MessageQuotaBot implements Runnable {
             for (int i = 0; i < messageListOfMember.size(); i++) {
 
                 final String messageText = messageListOfMember.get(i).getText();
-                final String timeStamp = messageListOfMember.get(i).getItemTs();
-                final long tsInSeconds = TimeUtil.timestampToUtcSeconds(timeStamp);
+                final String timestamp = messageListOfMember.get(i).getItemTs();
+                final long tsInSeconds = TimeUtil.timestampToUtcSeconds(timestamp);
                 final long distanceToNow = nowInSeconds - tsInSeconds;
                 if (distanceToNow < 0) {
                     Util.logError(
                             "Message from the future detected from member '" + member.getDisplayName() + "' ["
                                     + member.getLocalName() + "] in group '" + groupToProcess + "' !",
-                            connection, contactsForReporting, groupsForReporting);
+                            simplexConnection, contactsForReporting, groupsForReporting);
                 }
 
                 if (distanceToNow < TimeUtil.SECONDS_PER_HOUR) {
@@ -293,7 +291,7 @@ public class MessageQuotaBot implements Runnable {
                                         + messageCountWithinHour + " messageCountWithinDay=" + messageCountWithinDay
                                         + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
                                         + " maxSpamCountWithinDay=" + maxSpamCountWithinDay,
-                                connection, contactsForReporting, groupsForReporting);
+                                simplexConnection, contactsForReporting, groupsForReporting);
                     }
                 }
 
@@ -339,16 +337,16 @@ public class MessageQuotaBot implements Runnable {
                         + groupToProcess + "'* to *OBSERVER* : messageCountWithinHour=" + messageCountWithinHour
                         + " messageCountWithinDay=" + messageCountWithinDay + " maxSpamCountWithinHour="
                         + maxSpamCountWithinHour + " maxSpamCountWithinDay=" + maxSpamCountWithinDay,
-                connection, contactsForReporting, groupsForReporting);
+                simplexConnection, contactsForReporting, groupsForReporting);
 
-        if (!connection.changeGroupMemberRole(groupToProcess, member.getLocalName(), GroupMember.ROLE_OBSERVER,
+        if (!simplexConnection.changeGroupMemberRole(groupToProcess, member.getLocalName(), GroupMember.ROLE_OBSERVER,
                 contactsForReporting, groupsForReporting)) {
             return;
         }
 
         if (!silentMode) {
             final String reason = spam ? "Spam detected" : "Message quota reached";
-            connection.sendToGroup(groupToProcess,
+            simplexConnection.sendToGroup(groupToProcess,
                     "!1 " + reason + "! by member '" + member.getDisplayName() + "' => downgrading to 'observer'!",
                     contactsForReporting, groupsForReporting);
         }

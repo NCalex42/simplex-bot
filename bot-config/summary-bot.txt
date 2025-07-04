@@ -1,0 +1,75 @@
+# UTF8 without BOM
+
+# [mandatory] port where simplex-cli is running:
+port=
+
+# [mandatory] name of the group to process:
+group=
+
+# [mandatory] comma separated list of models from ollama that should be used:
+ollama-default-models=
+
+
+
+# [optional] additional context information for the LLM about the group,
+# e.g. "The topic of the group is the messenger 'SimpleX chat'." (without the quotes):
+group-context=
+
+# [optional] comma separated list of contacts to send the result to:
+output-contacts=
+
+# [optional] comma separated list of groups to send the result to:
+output-groups=
+
+# [optional] weekdays to run the daily summary (i.e. 1=Monday, 7=Sunday) as comma separated list of numbers (1-7);
+# to disable use "-1" (without the quotes), to always run leave empty:
+weekdays-daily=
+
+# [optional] hours to run the daily summary, e.g. "1" (without the quotes) means between 1 and 2 o'clock, as comma separated list of numbers (0-23);
+# to disable use "-1" (without the quotes), to always run leave empty:
+hours-daily=
+
+# [optional] weekdays to run the weekly summary (i.e. 1=Monday, 7=Sunday) as comma separated list of numbers (1-7);
+# to disable use "-1" (without the quotes), to always run leave empty:
+weekdays-weekly=
+
+# [optional] hours to run the weekly summary, e.g. "1" (without the quotes) means between 1 and 2 o'clock, as comma separated list of numbers (0-23);
+# to disable use "-1" (without the quotes), to always run leave empty:
+hours-weekly=
+
+# [optional] how long to sleep between checks (in minutes):
+sleep-time-minutes=
+
+# [optional] maximum number of messages to retrieve for generating the prompt, including messages with metadata:
+number-of-messages-to-retrieve=
+
+# [optional] if the name of the current LLM model should be revealed in the output; "true" or "false" (without the quotes):
+reveal-model-in-output=
+
+# [optional] if an "A.I. Warning" disclaimer should be shown before every A.I. output; "true" or "false" (without the quotes):
+show-ai-warning-in-output=
+
+# [optional] comma separated list of fallback models from ollama that should be used for long prompts,
+# e.g. if prompt is longer than the configured character limit (see below) or if all default models fail with a timeout:
+ollama-fallback-models=
+
+# [optional] timeout for A.I. response (in minutes):
+ollama-read-timeout-minutes=
+
+# [optional] cooldown time after each model (in seconds):
+ollama-cooldown-seconds=
+
+# [optional] prompt character limit, when fallback models should be used instead of the default models:
+ollama-default-model-prompt-character-limit=
+
+# [optional] to mitigate prompt injection attacks you should choose a secret prompt marker (i.e. a random sequence of characters):
+ollama-secret-prompt-marker=
+
+# [optional] choose a language for A.I. output; must be supported by your model(s):
+ollama-output-language=
+
+# [optional] comma separated list of contacts to report/log to:
+report-to-contacts=
+
+# [optional] comma separated list of groups to report/log to:
+report-to-groups=

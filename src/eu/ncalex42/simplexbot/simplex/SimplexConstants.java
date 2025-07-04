@@ -23,6 +23,7 @@ public class SimplexConstants {
     public static final String KEY_MSG_CONTENT = "msgContent";
     public static final String KEY_TEXT = "text";
     public static final String KEY_META = "meta";
+    public static final String KEY_QUOTED_ITEM = "quotedItem";
     public static final String KEY_ITEM_ID = "itemId";
     public static final String KEY_ITEM_TS = "itemTs";
     public static final String KEY_CHAT_DIR = "chatDir";

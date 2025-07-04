@@ -13,8 +13,9 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
@@ -25,7 +26,7 @@ import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
  */
 public class ModerateBot implements Runnable {
 
-    private final Connection connection;
+    private final SimplexConnection simplexConnection;
     private final String groupToProcess;
 
     private final int sleepTimeInSeconds;
@@ -312,8 +313,8 @@ public class ModerateBot implements Runnable {
             Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
-        Connection.initSimplexConnection(port);
-        return new ModerateBot(Connection.get(port), groupToProcess, sleepTimeInSeconds, contactsForReporting,
+        SimplexConnection.initSimplexConnection(port);
+        return new ModerateBot(SimplexConnection.get(port), groupToProcess, sleepTimeInSeconds, contactsForReporting,
                 groupsForReporting, blockImages, blockVideos, blockFiles, blockLinks, blockVoice, keywordBlockBlacklist,
                 regexBlockBlacklist, userBlockBlacklist, moderateImages, moderateVideos, moderateFiles, moderateLinks,
                 moderateVoice, keywordModerateBlacklist, regexModerateBlacklist, userModerateBlacklist, reportImages,
@@ -321,7 +322,7 @@ public class ModerateBot implements Runnable {
                 userReportBlacklist);
     }
 
-    public ModerateBot(Connection connection, String groupToProcess, int sleepTimeInSeconds,
+    public ModerateBot(SimplexConnection simplexConnection, String groupToProcess, int sleepTimeInSeconds,
             List<String> contactsForReporting, List<String> groupsForReporting, boolean blockImages,
             boolean blockVideos, boolean blockFiles, boolean blockLinks, boolean blockVoice,
             List<String> keywordBlockBlacklist, Map<String, Pattern> regexBlockBlacklist,
@@ -331,7 +332,7 @@ public class ModerateBot implements Runnable {
             boolean reportVideos, boolean reportFiles, boolean reportLinks, boolean reportVoice,
             List<String> keywordReportBlacklist, Map<String, Pattern> regexReportBlacklist,
             List<String> userReportBlacklist) {
-        this.connection = connection;
+        this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
         this.contactsForReporting = contactsForReporting;
@@ -365,23 +366,23 @@ public class ModerateBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(ModerateBot.class.getSimpleName() + " has started with config: " + ModerateBotConstants.CONFIG_PORT
-                + "=" + connection.getPort() + " " + ModerateBotConstants.CONFIG_GROUP + "='" + groupToProcess + "' "
-                + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "=" + sleepTimeInSeconds + " "
-                + ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "=" + Util.listToString(contactsForReporting) + " "
-                + ModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "=" + Util.listToString(groupsForReporting)
-                + " blockImages=" + blockImages + " blockVideos=" + blockVideos + " blockFiles=" + blockFiles
-                + " blockLinks=" + blockLinks + " blockVoice=" + blockVoice + " keywordBlockBlacklist.size="
-                + keywordBlockBlacklist.size() + " regexBlockBlacklist.size=" + regexBlockBlacklist.size()
-                + " userBlockBlacklist.size=" + userBlockBlacklist.size() + " moderateImages=" + moderateImages
-                + " moderateVideos=" + moderateVideos + " moderateFiles=" + moderateFiles + " moderateLinks="
-                + moderateLinks + " moderateVoice=" + moderateVoice + " keywordModerateBlacklist.size="
-                + keywordModerateBlacklist.size() + " regexModerateBlacklist.size=" + regexModerateBlacklist.size()
-                + " userModerateBlacklist.size=" + userModerateBlacklist.size() + " reportImages=" + reportImages
-                + " reportVideos=" + reportVideos + " reportFiles=" + reportFiles + " reportLinks=" + reportLinks
-                + " reportVoice=" + reportVoice + " keywordReportBlacklist.size=" + keywordReportBlacklist.size()
-                + " regexReportBlacklist.size=" + regexReportBlacklist.size() + " userReportBlacklist.size="
-                + userReportBlacklist.size(), connection, contactsForReporting, groupsForReporting);
+        Util.log(ModerateBot.class.getSimpleName() + " has started with config: *" + ModerateBotConstants.CONFIG_PORT
+                + "*=" + simplexConnection.getPort() + " *" + ModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess
+                + "' *" + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
+                + ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting) + " *"
+                + ModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting)
+                + " *blockImages*=" + blockImages + " *blockVideos*=" + blockVideos + " *blockFiles*=" + blockFiles
+                + " *blockLinks*=" + blockLinks + " *blockVoice*=" + blockVoice + " *keywordBlockBlacklist.size*="
+                + keywordBlockBlacklist.size() + " *regexBlockBlacklist.size*=" + regexBlockBlacklist.size()
+                + " *userBlockBlacklist.size*=" + userBlockBlacklist.size() + " *moderateImages*=" + moderateImages
+                + " *moderateVideos*=" + moderateVideos + " *moderateFiles*=" + moderateFiles + " *moderateLinks*="
+                + moderateLinks + " *moderateVoice*=" + moderateVoice + " *keywordModerateBlacklist.size*="
+                + keywordModerateBlacklist.size() + " *regexModerateBlacklist.size*=" + regexModerateBlacklist.size()
+                + " *userModerateBlacklist.size*=" + userModerateBlacklist.size() + " *reportImages*=" + reportImages
+                + " *reportVideos*=" + reportVideos + " *reportFiles*=" + reportFiles + " *reportLinks*=" + reportLinks
+                + " *reportVoice*=" + reportVoice + " *keywordReportBlacklist.size*=" + keywordReportBlacklist.size()
+                + " *regexReportBlacklist.size*=" + regexReportBlacklist.size() + " *userReportBlacklist.size*="
+                + userReportBlacklist.size(), simplexConnection, contactsForReporting, groupsForReporting);
 
         final Thread moderateActionThread = new Thread(new ModerateActionRunnable(),
                 ModerateBot.class.getSimpleName() + "." + ModerateActionRunnable.class.getSimpleName());
@@ -393,47 +394,43 @@ public class ModerateBot implements Runnable {
             while (true) {
                 try {
 
-                    for (final GroupMessage message : connection.getNewGroupMessages(groupToProcess,
+                    for (final GroupMessage message : simplexConnection.getNewGroupMessages(groupToProcess,
                             alreadyProcessedMessages, false, contactsForReporting, groupsForReporting)) {
 
                         try {
                             checkBlocking(message);
                         } catch (final Exception ex) {
-                            Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                                    groupsForReporting);
-                            ex.printStackTrace();
+                            Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                                    contactsForReporting, groupsForReporting);
                         }
 
                         try {
                             checkModeration(message);
                         } catch (final Exception ex) {
-                            Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                                    groupsForReporting);
-                            ex.printStackTrace();
+                            Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                                    contactsForReporting, groupsForReporting);
                         }
 
                         try {
                             checkReporting(message);
                         } catch (final Exception ex) {
-                            Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                                    groupsForReporting);
-                            ex.printStackTrace();
+                            Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                                    contactsForReporting, groupsForReporting);
                         }
                     }
 
                 } catch (final Exception ex) {
-                    Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                            groupsForReporting);
-                    ex.printStackTrace();
+                    Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                            contactsForReporting, groupsForReporting);
                 }
 
-                Thread.sleep(sleepTimeInSeconds * 1000);
+                Thread.sleep(sleepTimeInSeconds * TimeUtil.MILLISECONDS_PER_SECOND);
             }
 
         } catch (final Exception ex) {
-            Util.logError(ModerateBot.class.getSimpleName() + " has finished with error: " + ex.toString(), connection,
-                    contactsForReporting, groupsForReporting);
-            ex.printStackTrace();
+            Util.logError(
+                    ModerateBot.class.getSimpleName() + " has finished with error: " + Util.getStackTraceAsString(ex),
+                    simplexConnection, contactsForReporting, groupsForReporting);
         }
     }
 
@@ -489,7 +486,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String user : userBlockBlacklist) {
-            if (message.getUser().getDisplayName().equals(user)) {
+            if (message.getMember().getDisplayName().equals(user)) {
                 actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*USER* '" + user + "'"));
                 return;
             }
@@ -548,7 +545,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String user : userModerateBlacklist) {
-            if (message.getUser().getDisplayName().equals(user)) {
+            if (message.getMember().getDisplayName().equals(user)) {
                 actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*USER* '" + user + "'"));
                 return;
             }
@@ -597,7 +594,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String user : userReportBlacklist) {
-            if (message.getUser().getDisplayName().equals(user)) {
+            if (message.getMember().getDisplayName().equals(user)) {
                 actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*USER* '" + user + "'"));
                 return;
             }
@@ -629,83 +626,82 @@ public class ModerateBot implements Runnable {
                                     + messageAction.getAction());
                         }
                     } catch (final Exception ex) {
-                        Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                                groupsForReporting);
-                        ex.printStackTrace();
+                        Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                                contactsForReporting, groupsForReporting);
                     }
                 }
 
             } catch (final Exception ex) {
 
                 Util.logError(
-                        ModerateActionRunnable.class.getSimpleName() + " has finished with error: " + ex.toString(),
-                        connection, contactsForReporting, groupsForReporting);
-                ex.printStackTrace();
+                        ModerateActionRunnable.class.getSimpleName() + " has finished with error: "
+                                + Util.getStackTraceAsString(ex),
+                        simplexConnection, contactsForReporting, groupsForReporting);
             }
         }
 
         private void blockUser(GroupMessage message, String reason) {
 
             Util.log(
-                    "!6 Blocking! member *'" + message.getUser().getDisplayName() + "'* ["
-                            + message.getUser().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
+                    "!6 Blocking! member *'" + message.getMember().getDisplayName() + "'* ["
+                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
                             + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    connection, contactsForReporting, groupsForReporting);
+                    simplexConnection, contactsForReporting, groupsForReporting);
             if (!message.getText().isEmpty()) {
                 System.out.println(message.getText());
-                connection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
+                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
             }
 
-            if (message.getUser().hasPrivileges()) {
-                Util.logWarning("Member has privileges: !2 BLOCKING IS REJECTED!", connection, contactsForReporting,
-                        groupsForReporting);
+            if (message.getMember().hasPrivileges()) {
+                Util.logWarning("Member has privileges: !2 BLOCKING IS REJECTED!", simplexConnection,
+                        contactsForReporting, groupsForReporting);
                 return;
             }
 
             // Check latest member status to avoid multiple blocking:
-            final List<GroupMember> groupMemberList = connection.getGroupMembers(groupToProcess, contactsForReporting,
-                    groupsForReporting);
-            final GroupMember updatedMember = groupMemberList.get(groupMemberList.indexOf(message.getUser()));
+            final List<GroupMember> groupMemberList = simplexConnection.getGroupMembers(groupToProcess,
+                    contactsForReporting, groupsForReporting);
+            final GroupMember updatedMember = groupMemberList.get(groupMemberList.indexOf(message.getMember()));
             if (updatedMember.isBlocked()) {
                 return;
             }
 
-            connection.blockForAll(groupToProcess, message.getUser().getLocalName(), contactsForReporting,
+            simplexConnection.blockForAll(groupToProcess, message.getMember().getLocalName(), contactsForReporting,
                     groupsForReporting);
         }
 
         private void moderateMessage(GroupMessage message, String reason) {
 
             Util.log(
-                    "!4 Moderating! message of member *'" + message.getUser().getDisplayName() + "'* ["
-                            + message.getUser().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
+                    "!4 Moderating! message of member *'" + message.getMember().getDisplayName() + "'* ["
+                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
                             + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    connection, contactsForReporting, groupsForReporting);
+                    simplexConnection, contactsForReporting, groupsForReporting);
             if (!message.getText().isEmpty()) {
                 System.out.println(message.getText());
-                connection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
+                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
             }
 
-            if (message.getUser().hasPrivileges()) {
-                Util.logWarning("Member has privileges: !2 MODERATION IS REJECTED!", connection, contactsForReporting,
-                        groupsForReporting);
+            if (message.getMember().hasPrivileges()) {
+                Util.logWarning("Member has privileges: !2 MODERATION IS REJECTED!", simplexConnection,
+                        contactsForReporting, groupsForReporting);
                 return;
             }
 
-            connection.moderateGroupMessage(message.getGroupId(), message.getId(), contactsForReporting,
+            simplexConnection.moderateGroupMessage(message.getGroupId(), message.getId(), contactsForReporting,
                     groupsForReporting);
         }
 
         private void reportMessage(GroupMessage message, String reason) {
 
             Util.log(
-                    "!5 Reporting! message of member *'" + message.getUser().getDisplayName() + "'* ["
-                            + message.getUser().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
+                    "!5 Reporting! message of member *'" + message.getMember().getDisplayName() + "'* ["
+                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
                             + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    connection, contactsForReporting, groupsForReporting);
+                    simplexConnection, contactsForReporting, groupsForReporting);
             if (!message.getText().isEmpty()) {
                 System.out.println(message.getText());
-                connection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
+                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
             }
         }
     }

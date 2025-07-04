@@ -1,45 +1,54 @@
 package eu.ncalex42.simplexbot;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 
 public class Util {
 
-    public static void log(String message, Connection connection, List<String> contacts, List<String> groups) {
+    private enum LogLevel {
+        DEBUG, WARNING, ERROR
+    }
+
+    public static void log(String message, SimplexConnection simplexConnection, List<String> contacts,
+            List<String> groups) {
 
         final String formattedMessage = formatMessage(message, LogLevel.DEBUG);
         System.out.println(formattedMessage);
 
-        if (null == connection) {
+        if (null == simplexConnection) {
             return;
         }
 
-        connection.logToBotAdmins(formattedMessage, contacts, groups);
+        simplexConnection.logToBotAdmins(formattedMessage, contacts, groups);
     }
 
-    public static void logWarning(String message, Connection connection, List<String> contacts, List<String> groups) {
+    public static void logWarning(String message, SimplexConnection simplexConnection, List<String> contacts,
+            List<String> groups) {
 
         final String formattedMessage = formatMessage(message, LogLevel.WARNING);
         System.out.println(formattedMessage);
 
-        if (null == connection) {
+        if (null == simplexConnection) {
             return;
         }
 
-        connection.logToBotAdmins(formattedMessage, contacts, groups);
+        simplexConnection.logToBotAdmins(formattedMessage, contacts, groups);
     }
 
-    public static void logError(String message, Connection connection, List<String> contacts, List<String> groups) {
+    public static void logError(String message, SimplexConnection simplexConnection, List<String> contacts,
+            List<String> groups) {
         final String formattedMessage = formatMessage(message, LogLevel.ERROR);
 
         System.err.println(formattedMessage);
 
-        if (null == connection) {
+        if (null == simplexConnection) {
             return;
         }
 
-        connection.logToBotAdmins(formattedMessage, contacts, groups);
+        simplexConnection.logToBotAdmins(formattedMessage, contacts, groups);
     }
 
     private static String formatMessage(String message, LogLevel level) {
@@ -57,7 +66,7 @@ public class Util {
         default:
             sb.append("*");
         }
-        sb.append(TimeUtil.formatTimeStamp());
+        sb.append(TimeUtil.formatTimestamp());
 
         // level:
         switch (level) {
@@ -121,7 +130,10 @@ public class Util {
         return sb.toString();
     }
 
-    private enum LogLevel {
-        DEBUG, WARNING, ERROR
+    public static String getStackTraceAsString(Exception e) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 }

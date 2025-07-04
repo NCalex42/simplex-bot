@@ -1,7 +1,7 @@
 ## What is it?
 A bot for SimpleX.chat written in Java.
 
-It currently contains modules for moderating public groups, but can be easily extended with additional modules.
+It currently contains modules for moderating public groups and processing groups with a local Ollama A.I. LLM, but can be easily extended with additional modules.
 
 #### promote-bot:
 - automatically promotes new users in a group from the role 'observer' to the role 'member'
@@ -18,6 +18,11 @@ It currently contains modules for moderating public groups, but can be easily ex
 - there can be a message quota per hour and per day
 - there can also be a spam quota (i.e. number of identical text messages) per hour and per day
 
+#### summary-bot:
+- needs local Ollama LLM
+- can generate daily or weekly summaries of groups
+- depending on your LLM it can generate the summary in another language than used in the group
+
 
 
 ## How to use it?
@@ -30,7 +35,8 @@ Note: The `bot-config` folder must be located in your current working directory,
 
 
 ## What else?
-- requires SimpleX cli-version (tested with 6.3.3)
+- requires SimpleX cli-version (tested with 6.3.7)
 - requires Java >= 11
+- for A.I. modules: requires local Ollama (tested with 0.7.0)
 - for developers: requires `org.json`
 

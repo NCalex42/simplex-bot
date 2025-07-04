@@ -1,38 +1,87 @@
 package eu.ncalex42.simplexbot.simplex.model;
 
+import java.time.format.DateTimeParseException;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 
 public class GroupMessage {
 
-    public static final int NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE = 500;
+    public static final int DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE = 500;
 
     private final long id;
     private final long groupId;
     private final String type;
     private final String text;
-    private final GroupMember user;
+    private final GroupMember member;
     private final String itemTs;
+    private final QuotedGroupMessage quotedGroupMessage;
 
-    public GroupMessage(long id, long groupId, String type, String text, GroupMember user, String itemTs) {
+    public GroupMessage(long id, long groupId, String type, String text, GroupMember member, String itemTs,
+            QuotedGroupMessage quotedGroupMessage) {
         this.id = id;
         this.groupId = groupId;
         this.type = type;
         this.text = text;
-        this.user = user;
+        this.member = member;
         this.itemTs = itemTs;
+        this.quotedGroupMessage = quotedGroupMessage;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id + groupId);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof GroupMessage) {
+            final GroupMessage otherMessage = (GroupMessage) other;
+            return (id == otherMessage.getId()) && (groupId == otherMessage.getGroupId());
+        }
+        return false;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public long getGroupId() {
+        return groupId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public GroupMember getMember() {
+        return member;
+    }
+
+    public String getItemTs() {
+        return itemTs;
+    }
+
+    public QuotedGroupMessage getQuotedGroupMessage() {
+        return quotedGroupMessage;
     }
 
     public static List<GroupMessage> parseNewMessagesFromGroup(JSONObject tailResponse,
             List<GroupMessage> alreadyProcessedMessages, boolean retrieveDeprecatedMessages,
-            Connection simplexConnection, List<String> contactsForReporting, List<String> groupsForReporting) {
+            int numberOfMessagesToRetrieve, SimplexConnection simplexConnection, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
 
         JSONObject resp = tailResponse.getJSONObject(SimplexConstants.KEY_RESP);
         String type;
@@ -66,68 +115,81 @@ public class GroupMessage {
 
             final JSONObject chatItem = chatItems.getJSONObject(i);
 
-            // check chatItem type:
-            final String chatItemType = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_INFO)
-                    .getString(SimplexConstants.KEY_TYPE);
-            if (!SimplexConstants.VALUE_GROUP.equals(chatItemType)) {
-                continue;
-            }
+            try {
 
-            // check chatItem content type:
-            final String chatItemContentType = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
-                    .getJSONObject(SimplexConstants.KEY_CONTENT).getString(SimplexConstants.KEY_TYPE);
-            if (!SimplexConstants.VALUE_CONTENT_TYPE_MSG_CONTENT.equals(chatItemContentType)) {
-                continue;
-            }
-
-            final long groupId = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_INFO)
-                    .getJSONObject(SimplexConstants.KEY_GROUP_INFO).getLong(SimplexConstants.KEY_GROUP_ID);
-
-            final JSONObject messageMeta = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
-                    .getJSONObject(SimplexConstants.KEY_META);
-            final long messageId = messageMeta.getLong(SimplexConstants.KEY_ITEM_ID);
-            final String itemTs = messageMeta.getString(SimplexConstants.KEY_ITEM_TS);
-
-            final JSONObject messageContent = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
-                    .getJSONObject(SimplexConstants.KEY_CONTENT).getJSONObject(SimplexConstants.KEY_MSG_CONTENT);
-            final String messageType = messageContent.getString(SimplexConstants.KEY_TYPE);
-            final String messageText = messageContent.getString(SimplexConstants.KEY_TEXT);
-
-            final JSONObject groupMember = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
-                    .getJSONObject(SimplexConstants.KEY_CHAT_DIR).getJSONObject(SimplexConstants.KEY_GROUP_MEMBER);
-            final String localUserName = groupMember.getString(SimplexConstants.KEY_LOCAL_DISPLAY_NAME);
-            final String displayUserName = groupMember.getJSONObject(SimplexConstants.KEY_MEMBER_PROFILE)
-                    .getString(SimplexConstants.KEY_DISPLAY_NAME);
-            final long groupMemberId = groupMember.getLong(SimplexConstants.KEY_GROUP_MEMBER_ID);
-            final String memberRole = groupMember.getString(SimplexConstants.KEY_MEMBER_ROLE);
-            final String memberStatus = groupMember.getString(SimplexConstants.KEY_MEMBER_STATUS);
-            final boolean memberBlockedByAdmin = groupMember.getBoolean(SimplexConstants.KEY_BLOCKED_BY_ADMIN);
-
-            final GroupMessage currentGroupMessage = new GroupMessage(messageId, groupId, messageType, messageText,
-                    new GroupMember(localUserName, displayUserName, groupMemberId, memberRole, memberStatus,
-                            memberBlockedByAdmin, null),
-                    itemTs);
-
-            // check if message is new or contains new edits:
-            final int indexOfCurrentMessage = alreadyProcessedMessages.indexOf(currentGroupMessage);
-            if (-1 != indexOfCurrentMessage) {
-
-                final GroupMessage alreadyProcessedMessage = alreadyProcessedMessages.get(indexOfCurrentMessage);
-                if (alreadyProcessedMessage.getText().equals(currentGroupMessage.getText())) {
-                    continue; // no changes
+                // check chatItem type:
+                final String chatItemType = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_INFO)
+                        .getString(SimplexConstants.KEY_TYPE);
+                if (!SimplexConstants.VALUE_GROUP.equals(chatItemType)) {
+                    continue;
                 }
 
-                // replace old text with new text:
-                alreadyProcessedMessages.remove(indexOfCurrentMessage);
-                alreadyProcessedMessages.add(indexOfCurrentMessage, currentGroupMessage);
-            } else {
-                alreadyProcessedMessages.add(currentGroupMessage);
-            }
+                // check chatItem content type:
+                final String chatItemContentType = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
+                        .getJSONObject(SimplexConstants.KEY_CONTENT).getString(SimplexConstants.KEY_TYPE);
+                if (!SimplexConstants.VALUE_CONTENT_TYPE_MSG_CONTENT.equals(chatItemContentType)) {
+                    continue;
+                }
 
-            result.add(currentGroupMessage);
+                final long groupId = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_INFO)
+                        .getJSONObject(SimplexConstants.KEY_GROUP_INFO).getLong(SimplexConstants.KEY_GROUP_ID);
+
+                final JSONObject messageMeta = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
+                        .getJSONObject(SimplexConstants.KEY_META);
+                final long messageId = messageMeta.getLong(SimplexConstants.KEY_ITEM_ID);
+                final String itemTs = messageMeta.getString(SimplexConstants.KEY_ITEM_TS);
+
+                // itemTs should not contain nanoseconds:
+                if (isUnexpectedTimestampFormat(itemTs)) {
+                    continue;
+                }
+
+                final JSONObject messageContent = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
+                        .getJSONObject(SimplexConstants.KEY_CONTENT).getJSONObject(SimplexConstants.KEY_MSG_CONTENT);
+                final String messageType = messageContent.getString(SimplexConstants.KEY_TYPE);
+                final String messageText = messageContent.getString(SimplexConstants.KEY_TEXT);
+
+                final JSONObject groupMember = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
+                        .getJSONObject(SimplexConstants.KEY_CHAT_DIR).getJSONObject(SimplexConstants.KEY_GROUP_MEMBER);
+
+                final JSONObject quotedItem = chatItem.getJSONObject(SimplexConstants.KEY_CHAT_ITEM)
+                        .optJSONObject(SimplexConstants.KEY_QUOTED_ITEM);
+                QuotedGroupMessage quotedGroupMessage = null;
+                if (null != quotedItem) {
+                    quotedGroupMessage = QuotedGroupMessage.parseQuotedGroupMessage(quotedItem);
+                }
+
+                final GroupMessage currentGroupMessage = new GroupMessage(messageId, groupId, messageType, messageText,
+                        GroupMember.parseGroupMember(groupMember), itemTs, quotedGroupMessage);
+
+                // check if message is new or contains new edits:
+                final int indexOfCurrentMessage = alreadyProcessedMessages.indexOf(currentGroupMessage);
+                if (-1 != indexOfCurrentMessage) {
+
+                    final GroupMessage alreadyProcessedMessage = alreadyProcessedMessages.get(indexOfCurrentMessage);
+                    if (alreadyProcessedMessage.getText().equals(currentGroupMessage.getText())) {
+                        continue; // no changes
+                    }
+
+                    // replace old text with new text:
+                    alreadyProcessedMessages.remove(indexOfCurrentMessage);
+                    alreadyProcessedMessages.add(indexOfCurrentMessage, currentGroupMessage);
+                } else {
+                    alreadyProcessedMessages.add(currentGroupMessage);
+                }
+
+                result.add(currentGroupMessage);
+
+            } catch (final JSONException jsonException) {
+                Util.logError(Util.getStackTraceAsString(jsonException), simplexConnection, contactsForReporting,
+                        groupsForReporting);
+                Util.logError("Unexpected JSON:\n" + chatItem.toString(2), simplexConnection, contactsForReporting,
+                        groupsForReporting);
+                throw new IllegalStateException("Unexpected JSON!");
+            }
         }
 
-        trimProcessedMessages(alreadyProcessedMessages);
+        trimProcessedMessages(alreadyProcessedMessages, numberOfMessagesToRetrieve);
 
         if (firstRun && !retrieveDeprecatedMessages) {
             return List.of();
@@ -136,48 +198,21 @@ public class GroupMessage {
         }
     }
 
-    private static void trimProcessedMessages(List<GroupMessage> alreadyProcessedMessages) {
+    private static boolean isUnexpectedTimestampFormat(String itemTs) {
 
-        while (alreadyProcessedMessages.size() > (NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE + 500)) { // +500 as safety buffer
-            alreadyProcessedMessages.remove(0);
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(id + groupId);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (other instanceof GroupMessage) {
-            final GroupMessage otherMessage = (GroupMessage) other;
-            return (id == otherMessage.getId()) && (groupId == otherMessage.getGroupId());
+        try {
+            TimeUtil.timestampToUtcSeconds(itemTs);
+        } catch (final DateTimeParseException ex) {
+            return true;
         }
         return false;
     }
 
-    public long getId() {
-        return id;
-    }
+    private static void trimProcessedMessages(List<GroupMessage> alreadyProcessedMessages,
+            int numberOfMessagesToRetrieve) {
 
-    public long getGroupId() {
-        return groupId;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public GroupMember getUser() {
-        return user;
-    }
-
-    public String getItemTs() {
-        return itemTs;
+        while (alreadyProcessedMessages.size() > (numberOfMessagesToRetrieve + 500)) { // +500 as safety buffer
+            alreadyProcessedMessages.remove(0);
+        }
     }
 }

@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
-import eu.ncalex42.simplexbot.simplex.Connection;
+import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 
 /**
@@ -20,7 +20,7 @@ import eu.ncalex42.simplexbot.simplex.model.GroupMember;
  */
 public class PromoteBot implements Runnable {
 
-    private final Connection connection;
+    private final SimplexConnection simplexConnection;
     private final String groupToProcess;
 
     private final int[] weekdaysToRun;
@@ -30,6 +30,9 @@ public class PromoteBot implements Runnable {
 
     private final List<String> contactsForReporting;
     private final List<String> groupsForReporting;
+
+    private String lastRunDate = "";
+    private int lastRunHour = -1;
 
     public static PromoteBot init(Path configFile) throws IOException {
 
@@ -127,15 +130,15 @@ public class PromoteBot implements Runnable {
             Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
-        Connection.initSimplexConnection(port);
-        return new PromoteBot(Connection.get(port), groupToProcess, weekDaysToRun, hoursToRun, sleepTimeInMinutes,
-                minWaitTimePerMemberInDays, contactsForReporting, groupsForReporting);
+        SimplexConnection.initSimplexConnection(port);
+        return new PromoteBot(SimplexConnection.get(port), groupToProcess, weekDaysToRun, hoursToRun,
+                sleepTimeInMinutes, minWaitTimePerMemberInDays, contactsForReporting, groupsForReporting);
     }
 
-    public PromoteBot(Connection connection, String groupToProcess, int[] weekdaysToRun, int[] hoursToRun,
+    public PromoteBot(SimplexConnection simplexConnection, String groupToProcess, int[] weekdaysToRun, int[] hoursToRun,
             int sleepTimeInMinutes, int minWaitTimePerMemberInDays, List<String> contactsForReporting,
             List<String> groupsForReporting) {
-        this.connection = connection;
+        this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.weekdaysToRun = weekdaysToRun;
         this.hoursToRun = hoursToRun;
@@ -148,15 +151,15 @@ public class PromoteBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(PromoteBot.class.getSimpleName() + " has started with config: " + PromoteBotConstants.CONFIG_PORT + "="
-                + connection.getPort() + " " + PromoteBotConstants.CONFIG_GROUP + "='" + groupToProcess + "' "
-                + PromoteBotConstants.CONFIG_WEEKDAYS + "=" + Util.intArrayToString(weekdaysToRun) + " "
-                + PromoteBotConstants.CONFIG_HOURS + "=" + Util.intArrayToString(hoursToRun) + " "
-                + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "=" + sleepTimeInMinutes + " "
-                + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "=" + minWaitTimePerMemberInDays + " "
-                + PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS + "=" + Util.listToString(contactsForReporting) + " "
-                + PromoteBotConstants.CONFIG_REPORT_TO_GROUPS + "=" + Util.listToString(groupsForReporting), connection,
-                contactsForReporting, groupsForReporting);
+        Util.log(PromoteBot.class.getSimpleName() + " has started with config: *" + PromoteBotConstants.CONFIG_PORT
+                + "*=" + simplexConnection.getPort() + " *" + PromoteBotConstants.CONFIG_GROUP + "*='" + groupToProcess
+                + "' *" + PromoteBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
+                + PromoteBotConstants.CONFIG_HOURS + "*=" + Util.intArrayToString(hoursToRun) + " *"
+                + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "*=" + sleepTimeInMinutes + " *"
+                + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "*=" + minWaitTimePerMemberInDays + " *"
+                + PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting) + " *"
+                + PromoteBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
+                simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
             while (true) {
@@ -166,12 +169,12 @@ public class PromoteBot implements Runnable {
                     Util.log(
                             "Promoting members in group '" + groupToProcess + "' from '" + GroupMember.ROLE_OBSERVER
                                     + "' to '" + GroupMember.ROLE_MEMBER + "'",
-                            connection, contactsForReporting, groupsForReporting);
+                            simplexConnection, contactsForReporting, groupsForReporting);
 
                     try {
 
                         int countOfPromotedMembers = 0;
-                        final List<GroupMember> members = connection.getGroupMembers(groupToProcess,
+                        final List<GroupMember> members = simplexConnection.getGroupMembers(groupToProcess,
                                 contactsForReporting, groupsForReporting);
 
                         final long nowInSeconds = TimeUtil.getUtcSeconds();
@@ -196,10 +199,10 @@ public class PromoteBot implements Runnable {
                                 Util.logWarning(
                                         "Member *'" + member.getDisplayName() + "'* [" + member.getLocalName()
                                                 + "] in group *'" + groupToProcess + "'* is not connected!",
-                                        connection, contactsForReporting, groupsForReporting);
+                                        simplexConnection, contactsForReporting, groupsForReporting);
                             }
 
-                            if (!connection.changeGroupMemberRole(groupToProcess, member.getLocalName(),
+                            if (!simplexConnection.changeGroupMemberRole(groupToProcess, member.getLocalName(),
                                     GroupMember.ROLE_MEMBER, contactsForReporting, groupsForReporting)) {
                                 continue;
                             }
@@ -207,27 +210,31 @@ public class PromoteBot implements Runnable {
                             countOfPromotedMembers++;
                         }
 
-                        Util.log("!2 Promoted! " + countOfPromotedMembers + " member(s)", connection,
+                        Util.log("!2 Promoted! " + countOfPromotedMembers + " member(s)", simplexConnection,
                                 contactsForReporting, groupsForReporting);
 
                     } catch (final Exception ex) {
-                        Util.logError("Unexpected exception: " + ex.toString(), connection, contactsForReporting,
-                                groupsForReporting);
-                        ex.printStackTrace();
+                        Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
+                                contactsForReporting, groupsForReporting);
                     }
                 }
 
-                Thread.sleep(sleepTimeInMinutes * 60 * 1000);
+                Thread.sleep(sleepTimeInMinutes * TimeUtil.MILLISECONDS_PER_MINUTE);
             }
         } catch (final Exception ex) {
-            Util.logError(PromoteBot.class.getSimpleName() + " has finished with error: " + ex.toString(), connection,
-                    contactsForReporting, groupsForReporting);
-            ex.printStackTrace();
+            Util.logError(
+                    PromoteBot.class.getSimpleName() + " has finished with error: " + Util.getStackTraceAsString(ex),
+                    simplexConnection, contactsForReporting, groupsForReporting);
         }
     }
 
     private boolean shouldRun() {
-        return checkWeekdays() && checkHours();
+        if (checkWeekdays() && checkHours() && checkLastRun()) {
+            lastRunDate = TimeUtil.getDate();
+            lastRunHour = TimeUtil.getHourOfDay();
+            return true;
+        }
+        return false;
     }
 
     private boolean checkWeekdays() {
@@ -258,5 +265,9 @@ public class PromoteBot implements Runnable {
         }
 
         return false;
+    }
+
+    private boolean checkLastRun() {
+        return (lastRunHour != TimeUtil.getHourOfDay()) || !lastRunDate.equals(TimeUtil.getDate());
     }
 }

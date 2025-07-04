@@ -18,10 +18,12 @@ spam-quota-per-hour=
 # [mandatory] spam quota per day (i.e. count of identical text messages):
 spam-quota-per-day=
 
+
+
 # [optional] how long to sleep between checks (in seconds):
 sleep-time-seconds=
 
-# [optional] if downgrade of member should be announced to group ('true' or 'false'):
+# [optional] if downgrade of member should be announced to group; "true" or "false" (without the quotes):
 silentmode=
 
 # [optional] comma separated list of contacts to report/log to:
