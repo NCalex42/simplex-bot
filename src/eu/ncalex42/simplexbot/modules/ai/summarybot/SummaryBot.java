@@ -425,7 +425,7 @@ public class SummaryBot implements Runnable {
                         + ((0 == dailyCounter) ? 0 : dailyPrompt.length()) + " characters) of the last !5 day! and *"
                         + weeklyCounter + "* messages (" + ((0 == weeklyCounter) ? 0 : weeklyPrompt.length())
                         + " characters) of the last !3 week! from group *'" + groupToProcess + "'*",
-                simplexConnection, contactsForOutput, groupsForOutput);
+                simplexConnection, contactsForReporting, groupsForReporting);
     }
 
     private String formatMessageForAiSummary(GroupMessage message) {
@@ -496,7 +496,8 @@ public class SummaryBot implements Runnable {
         try {
             Thread.sleep(ollamaCooldownSeconds * TimeUtil.MILLISECONDS_PER_SECOND);
         } catch (final InterruptedException ex) {
-            Util.logWarning(Util.getStackTraceAsString(ex), simplexConnection, contactsForOutput, groupsForOutput);
+            Util.logWarning(Util.getStackTraceAsString(ex), simplexConnection, contactsForReporting,
+                    groupsForReporting);
         }
 
         if (null == aiResponse) {
@@ -526,7 +527,8 @@ public class SummaryBot implements Runnable {
     private String sanitizeAiResponse(String aiResponse) {
         final String[] aiResponseSplit = aiResponse.split("</think>");
         final String aiResponseWithoutThinking = aiResponseSplit[aiResponseSplit.length - 1].strip();
-        return aiResponseWithoutThinking.replace("**", "*").replace(secretPromptMarker, "*****");
+        return aiResponseWithoutThinking.replace("**", "*").replace("\n* ", "\n- ").replace(secretPromptMarker,
+                "*****");
     }
 
     private boolean shouldRunDaily() {
