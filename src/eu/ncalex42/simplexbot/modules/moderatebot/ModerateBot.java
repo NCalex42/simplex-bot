@@ -13,6 +13,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
@@ -30,6 +31,8 @@ public class ModerateBot implements Runnable {
     private final String groupToProcess;
 
     private final int sleepTimeInSeconds;
+    private final int numberOfMessagesToRetrieve;
+    private final boolean persistState;
 
     private final List<String> contactsForReporting;
     private final List<String> groupsForReporting;
@@ -69,6 +72,8 @@ public class ModerateBot implements Runnable {
         int port = -1;
         String groupToProcess = null;
         int sleepTimeInSeconds = -60;
+        int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
+        String persistState = "";
         final List<String> contactsForReporting = new LinkedList<>();
         final List<String> groupsForReporting = new LinkedList<>();
 
@@ -96,6 +101,16 @@ public class ModerateBot implements Runnable {
                 if (!value.isBlank()) {
                     sleepTimeInSeconds = Integer.parseInt(value);
                 }
+                break;
+
+            case ModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE:
+                if (!value.isBlank()) {
+                    numberOfMessagesToRetrieve = Integer.parseInt(value);
+                }
+                break;
+
+            case ModerateBotConstants.CONFIG_PERSIST_STATE:
+                persistState = value;
                 break;
 
             case ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS:
@@ -304,37 +319,42 @@ public class ModerateBot implements Runnable {
         }
 
         if ((port < 0) || (null == groupToProcess) || groupToProcess.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Some mandatory config properties are missing or are invalid! Required are: '"
-                            + ModerateBotConstants.CONFIG_PORT + "' and '" + ModerateBotConstants.CONFIG_GROUP + "'");
+            throw new IllegalArgumentException("[" + ModerateBot.class.getSimpleName()
+                    + "] Some mandatory config properties are missing or are invalid! Required are: '"
+                    + ModerateBotConstants.CONFIG_PORT + "' and '" + ModerateBotConstants.CONFIG_GROUP + "'");
         }
 
-        if (sleepTimeInSeconds < 0) {
-            Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
+        if ((sleepTimeInSeconds < 0) || (numberOfMessagesToRetrieve < 0)
+                || (!persistState.equalsIgnoreCase("true") && !persistState.equalsIgnoreCase("false"))) {
+            Util.logWarning("[" + ModerateBot.class.getSimpleName()
+                    + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
         SimplexConnection.initSimplexConnection(port);
-        return new ModerateBot(SimplexConnection.get(port), groupToProcess, sleepTimeInSeconds, contactsForReporting,
-                groupsForReporting, blockImages, blockVideos, blockFiles, blockLinks, blockVoice, keywordBlockBlacklist,
-                regexBlockBlacklist, userBlockBlacklist, moderateImages, moderateVideos, moderateFiles, moderateLinks,
-                moderateVoice, keywordModerateBlacklist, regexModerateBlacklist, userModerateBlacklist, reportImages,
-                reportVideos, reportFiles, reportLinks, reportVoice, keywordReportBlacklist, regexReportBlacklist,
+        return new ModerateBot(SimplexConnection.get(port), groupToProcess, sleepTimeInSeconds,
+                numberOfMessagesToRetrieve, persistState, contactsForReporting, groupsForReporting, blockImages,
+                blockVideos, blockFiles, blockLinks, blockVoice, keywordBlockBlacklist, regexBlockBlacklist,
+                userBlockBlacklist, moderateImages, moderateVideos, moderateFiles, moderateLinks, moderateVoice,
+                keywordModerateBlacklist, regexModerateBlacklist, userModerateBlacklist, reportImages, reportVideos,
+                reportFiles, reportLinks, reportVoice, keywordReportBlacklist, regexReportBlacklist,
                 userReportBlacklist);
     }
 
-    public ModerateBot(SimplexConnection simplexConnection, String groupToProcess, int sleepTimeInSeconds,
-            List<String> contactsForReporting, List<String> groupsForReporting, boolean blockImages,
-            boolean blockVideos, boolean blockFiles, boolean blockLinks, boolean blockVoice,
-            List<String> keywordBlockBlacklist, Map<String, Pattern> regexBlockBlacklist,
-            List<String> userBlockBlacklist, boolean moderateImages, boolean moderateVideos, boolean moderateFiles,
-            boolean moderateLinks, boolean moderateVoice, List<String> keywordModerateBlacklist,
-            Map<String, Pattern> regexModerateBlacklist, List<String> userModerateBlacklist, boolean reportImages,
-            boolean reportVideos, boolean reportFiles, boolean reportLinks, boolean reportVoice,
-            List<String> keywordReportBlacklist, Map<String, Pattern> regexReportBlacklist,
-            List<String> userReportBlacklist) {
+    private ModerateBot(SimplexConnection simplexConnection, String groupToProcess, int sleepTimeInSeconds,
+            int numberOfMessagesToRetrieve, String persistState, List<String> contactsForReporting,
+            List<String> groupsForReporting, boolean blockImages, boolean blockVideos, boolean blockFiles,
+            boolean blockLinks, boolean blockVoice, List<String> keywordBlockBlacklist,
+            Map<String, Pattern> regexBlockBlacklist, List<String> userBlockBlacklist, boolean moderateImages,
+            boolean moderateVideos, boolean moderateFiles, boolean moderateLinks, boolean moderateVoice,
+            List<String> keywordModerateBlacklist, Map<String, Pattern> regexModerateBlacklist,
+            List<String> userModerateBlacklist, boolean reportImages, boolean reportVideos, boolean reportFiles,
+            boolean reportLinks, boolean reportVoice, List<String> keywordReportBlacklist,
+            Map<String, Pattern> regexReportBlacklist, List<String> userReportBlacklist) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
+        this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
+        this.persistState = persistState.equalsIgnoreCase("true") ? true : false;
         this.contactsForReporting = contactsForReporting;
         this.groupsForReporting = groupsForReporting;
         this.blockImages = blockImages;
@@ -366,9 +386,12 @@ public class ModerateBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(ModerateBot.class.getSimpleName() + " has started with config: *" + ModerateBotConstants.CONFIG_PORT
-                + "*=" + simplexConnection.getPort() + " *" + ModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess
-                + "' *" + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
+        Util.log(ModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
+                + ModerateBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
+                + ModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
+                + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
+                + ModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
+                + ModerateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState + " *"
                 + ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting) + " *"
                 + ModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting)
                 + " *blockImages*=" + blockImages + " *blockVideos*=" + blockVideos + " *blockFiles*=" + blockFiles
@@ -388,14 +411,31 @@ public class ModerateBot implements Runnable {
                 ModerateBot.class.getSimpleName() + "." + ModerateActionRunnable.class.getSimpleName());
         moderateActionThread.start();
 
-        final List<GroupMessage> alreadyProcessedMessages = new LinkedList<>();
-
         try {
+
+            final List<GroupMessage> alreadyProcessedMessages;
+            if (persistState) {
+                alreadyProcessedMessages = Util.initCacheFile(
+                        Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                        groupToProcess, numberOfMessagesToRetrieve, simplexConnection, contactsForReporting,
+                        groupsForReporting);
+            } else {
+                try {
+                    Files.deleteIfExists(
+                            Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE));
+                } catch (final Exception ex) {
+                    Util.logWarning("Unused cache file could not be deleted: " + Util.getStackTraceAsString(ex),
+                            simplexConnection, contactsForReporting, groupsForReporting);
+                }
+                alreadyProcessedMessages = new LinkedList<>();
+            }
+
             while (true) {
                 try {
 
                     for (final GroupMessage message : simplexConnection.getNewGroupMessages(groupToProcess,
-                            alreadyProcessedMessages, false, contactsForReporting, groupsForReporting)) {
+                            alreadyProcessedMessages, false, numberOfMessagesToRetrieve, contactsForReporting,
+                            groupsForReporting)) {
 
                         try {
                             checkBlocking(message);
@@ -416,6 +456,12 @@ public class ModerateBot implements Runnable {
                         } catch (final Exception ex) {
                             Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,
                                     contactsForReporting, groupsForReporting);
+                        }
+
+                        if (persistState) {
+                            Util.addProcessedMessageToFile(message,
+                                    Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                                    numberOfMessagesToRetrieve);
                         }
                     }
 

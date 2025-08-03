@@ -17,6 +17,8 @@ public class GroupMessage {
 
     public static final int DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE = 500;
 
+    public static final String TYPE_UNKNOWN = "<unknown>";
+
     private final long id;
     private final long groupId;
     private final String type;
@@ -167,13 +169,19 @@ public class GroupMessage {
                 if (-1 != indexOfCurrentMessage) {
 
                     final GroupMessage alreadyProcessedMessage = alreadyProcessedMessages.get(indexOfCurrentMessage);
-                    if (alreadyProcessedMessage.getText().equals(currentGroupMessage.getText())) {
+                    if (!TYPE_UNKNOWN.equals(alreadyProcessedMessage.getType())
+                            && alreadyProcessedMessage.getText().equals(currentGroupMessage.getText())) {
                         continue; // no changes
                     }
 
                     // replace old text with new text:
                     alreadyProcessedMessages.remove(indexOfCurrentMessage);
                     alreadyProcessedMessages.add(indexOfCurrentMessage, currentGroupMessage);
+
+                    if (TYPE_UNKNOWN.equals(alreadyProcessedMessage.getType())) {
+                        continue;
+                    }
+
                 } else {
                     alreadyProcessedMessages.add(currentGroupMessage);
                 }
@@ -189,7 +197,7 @@ public class GroupMessage {
             }
         }
 
-        trimProcessedMessages(alreadyProcessedMessages, numberOfMessagesToRetrieve);
+        Util.trimProcessedMessages(alreadyProcessedMessages, numberOfMessagesToRetrieve);
 
         if (firstRun && !retrieveDeprecatedMessages) {
             return List.of();
@@ -206,13 +214,5 @@ public class GroupMessage {
             return true;
         }
         return false;
-    }
-
-    private static void trimProcessedMessages(List<GroupMessage> alreadyProcessedMessages,
-            int numberOfMessagesToRetrieve) {
-
-        while (alreadyProcessedMessages.size() > (numberOfMessagesToRetrieve + 500)) { // +500 as safety buffer
-            alreadyProcessedMessages.remove(0);
-        }
     }
 }

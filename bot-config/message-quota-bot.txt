@@ -26,6 +26,9 @@ sleep-time-seconds=
 # [optional] if downgrade of member should be announced to group; "true" or "false" (without the quotes):
 silentmode=
 
+# [optional] maximum number of messages to retrieve, including messages with metadata:
+number-of-messages-to-retrieve=
+
 # [optional] comma separated list of contacts to report/log to:
 report-to-contacts=
 

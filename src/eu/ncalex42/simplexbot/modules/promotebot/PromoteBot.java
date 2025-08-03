@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
@@ -120,14 +121,15 @@ public class PromoteBot implements Runnable {
         }
 
         if ((port < 0) || (null == groupToProcess) || groupToProcess.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Some mandatory config properties are missing or are invalid! Required are: '"
-                            + PromoteBotConstants.CONFIG_PORT + "' and '" + PromoteBotConstants.CONFIG_GROUP + "'");
+            throw new IllegalArgumentException("[" + PromoteBot.class.getSimpleName()
+                    + "] Some mandatory config properties are missing or are invalid! Required are: '"
+                    + PromoteBotConstants.CONFIG_PORT + "' and '" + PromoteBotConstants.CONFIG_GROUP + "'");
         }
 
         if ((null == weekDaysToRun) || (null == hoursToRun) || (sleepTimeInMinutes < 0)
                 || (minWaitTimePerMemberInDays < 0)) {
-            Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
+            Util.logWarning("[" + PromoteBot.class.getSimpleName()
+                    + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
         SimplexConnection.initSimplexConnection(port);
@@ -135,8 +137,8 @@ public class PromoteBot implements Runnable {
                 sleepTimeInMinutes, minWaitTimePerMemberInDays, contactsForReporting, groupsForReporting);
     }
 
-    public PromoteBot(SimplexConnection simplexConnection, String groupToProcess, int[] weekdaysToRun, int[] hoursToRun,
-            int sleepTimeInMinutes, int minWaitTimePerMemberInDays, List<String> contactsForReporting,
+    private PromoteBot(SimplexConnection simplexConnection, String groupToProcess, int[] weekdaysToRun,
+            int[] hoursToRun, int sleepTimeInMinutes, int minWaitTimePerMemberInDays, List<String> contactsForReporting,
             List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
@@ -151,9 +153,10 @@ public class PromoteBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(PromoteBot.class.getSimpleName() + " has started with config: *" + PromoteBotConstants.CONFIG_PORT
-                + "*=" + simplexConnection.getPort() + " *" + PromoteBotConstants.CONFIG_GROUP + "*='" + groupToProcess
-                + "' *" + PromoteBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
+        Util.log(PromoteBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
+                + PromoteBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
+                + PromoteBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
+                + PromoteBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
                 + PromoteBotConstants.CONFIG_HOURS + "*=" + Util.intArrayToString(hoursToRun) + " *"
                 + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "*=" + sleepTimeInMinutes + " *"
                 + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "*=" + minWaitTimePerMemberInDays + " *"

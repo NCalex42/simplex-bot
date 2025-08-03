@@ -23,6 +23,10 @@ It currently contains modules for moderating public groups and processing groups
 - can generate daily or weekly summaries of groups
 - depending on your LLM it can generate the summary in another language than used in the group
 
+#### translate-bot:
+- needs local Ollama LLM
+- can translate messages in groups to another language
+
 
 
 ## How to use it?
@@ -35,7 +39,7 @@ Note: The `bot-config` folder must be located in your current working directory,
 
 
 ## What else?
-- requires SimpleX cli-version (tested with 6.3.7)
+- requires SimpleX cli-version (tested with 6.4.1)
 - requires Java >= 11
 - for A.I. modules: requires local Ollama (tested with 0.7.0)
 - for developers: requires `org.json`
