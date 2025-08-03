@@ -40,7 +40,7 @@ hours-weekly=
 # [optional] how long to sleep between checks (in minutes):
 sleep-time-minutes=
 
-# [optional] maximum number of messages to retrieve for generating the prompt, including messages with metadata:
+# [optional] maximum number of messages to retrieve, including messages with metadata:
 number-of-messages-to-retrieve=
 
 # [optional] if the name of the current LLM model should be revealed in the output; "true" or "false" (without the quotes):

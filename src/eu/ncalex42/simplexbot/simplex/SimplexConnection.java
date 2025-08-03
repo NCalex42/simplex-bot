@@ -173,12 +173,6 @@ public class SimplexConnection {
     }
 
     public List<GroupMessage> getNewGroupMessages(String groupName, List<GroupMessage> alreadyProcessedMessages,
-            boolean retrieveDeprecatedMessages, List<String> contactsForReporting, List<String> groupsForReporting) {
-        return getNewGroupMessages(groupName, alreadyProcessedMessages, retrieveDeprecatedMessages,
-                GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE, contactsForReporting, groupsForReporting);
-    }
-
-    public List<GroupMessage> getNewGroupMessages(String groupName, List<GroupMessage> alreadyProcessedMessages,
             boolean retrieveDeprecatedMessages, int numberOfMessagesToRetrieve, List<String> contactsForReporting,
             List<String> groupsForReporting) {
 

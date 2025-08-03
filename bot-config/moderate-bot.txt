@@ -11,6 +11,12 @@ group=
 # [optional] how long to sleep between checks (in seconds):
 sleep-time-seconds=
 
+# [optional] maximum number of messages to retrieve, including messages with metadata:
+number-of-messages-to-retrieve=
+
+# [optional] if already processed message IDs should be stored on disk, to continue after a restart; "true" or "false" (without the quotes):
+persist-state=
+
 # [optional] comma separated list of contacts to report/log to:
 report-to-contacts=
 

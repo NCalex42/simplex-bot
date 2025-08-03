@@ -6,10 +6,13 @@ public class ModerateBotConstants {
     static final String BLOCK_BLACKLIST_FILENAME = "moderate-bot-block-blacklist.txt";
     static final String MODERATE_BLACKLIST_FILENAME = "moderate-bot-moderate-blacklist.txt";
     static final String REPORT_BLACKLIST_FILENAME = "moderate-bot-report-blacklist.txt";
+    static final String PROCESSED_MESSAGES_CACHE_FILE = "moderate-bot-message-cache.tmp";
 
     static final String CONFIG_PORT = "port";
     static final String CONFIG_GROUP = "group";
     static final String CONFIG_SLEEP_TIME_SECONDS = "sleep-time-seconds";
+    static final String CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE = "number-of-messages-to-retrieve";
+    static final String CONFIG_PERSIST_STATE = "persist-state";
     static final String CONFIG_REPORT_TO_CONTACTS = "report-to-contacts";
     static final String CONFIG_REPORT_TO_GROUPS = "report-to-groups";
 

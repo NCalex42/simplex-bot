@@ -1,0 +1,60 @@
+# UTF8 without BOM
+
+# [mandatory] port where simplex-cli is running:
+port=
+
+# [mandatory] name of the group to process:
+group=
+
+# [mandatory] comma separated list of models from ollama that should be used:
+ollama-models=
+
+
+
+# [optional] additional context information for the LLM about the group,
+# e.g. "The topic of the group is the messenger 'SimpleX chat'." (without the quotes):
+group-context=
+
+# [optional] comma separated list of contacts to send the result to:
+output-contacts=
+
+# [optional] comma separated list of groups to send the result to:
+output-groups=
+
+# [optional] weekdays to run (i.e. 1=Monday, 7=Sunday) as comma separated list of numbers (1-7);
+# to disable use "-1" (without the quotes), to always run leave empty:
+weekdays=
+
+# [optional] hours to run, e.g. "1" (without the quotes) means between 1 and 2 o'clock, as comma separated list of numbers (0-23);
+# to disable use "-1" (without the quotes), to always run leave empty:
+hours=
+
+# [optional] how long to sleep between checks (in seconds):
+sleep-time-seconds=
+
+# [optional] maximum number of messages to retrieve, including messages with metadata:
+number-of-messages-to-retrieve=
+
+# [optional] if output should always be generated, even if input is already translated; "true" or "false" (without the quotes):
+always-translate=
+
+# [optional] if already processed message IDs should be stored on disk, to continue after a restart; "true" or "false" (without the quotes):
+persist-state=
+
+# [optional] timeout for A.I. response (in minutes):
+ollama-read-timeout-minutes=
+
+# [optional] cooldown time after each model (in seconds):
+ollama-cooldown-seconds=
+
+# [optional] to mitigate prompt injection attacks you should choose a secret prompt marker (i.e. a random sequence of characters):
+ollama-secret-prompt-marker=
+
+# [optional] choose a language for A.I. output; must be supported by your model(s):
+ollama-output-language=
+
+# [optional] comma separated list of contacts to report/log to:
+report-to-contacts=
+
+# [optional] comma separated list of groups to report/log to:
+report-to-groups=

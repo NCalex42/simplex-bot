@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 
 import eu.ncalex42.simplexbot.modules.ai.summarybot.SummaryBot;
 import eu.ncalex42.simplexbot.modules.ai.summarybot.SummaryBotConstants;
+import eu.ncalex42.simplexbot.modules.ai.translatebot.TranslateBot;
+import eu.ncalex42.simplexbot.modules.ai.translatebot.TranslateBotConstants;
 import eu.ncalex42.simplexbot.modules.messagequotabot.MessageQuotaBot;
 import eu.ncalex42.simplexbot.modules.messagequotabot.MessageQuotaBotConstants;
 import eu.ncalex42.simplexbot.modules.moderatebot.ModerateBot;
@@ -18,8 +20,8 @@ import eu.ncalex42.simplexbot.modules.promotebot.PromoteBotConstants;
 
 public class Start {
 
-    public static final String VERSION = "1.1.1";
-    private static final String CONFIG_DIRECTORY = "bot-config";
+    public static final String VERSION = "1.2.0";
+    public static final String CONFIG_DIRECTORY = "bot-config";
 
     public static void main(String[] args) {
 
@@ -62,6 +64,10 @@ public class Start {
 
                 case SummaryBotConstants.CFG_FILE_NAME:
                     modules.add(SummaryBot.init(filePath));
+                    break;
+
+                case TranslateBotConstants.CFG_FILE_NAME:
+                    modules.add(TranslateBot.init(filePath));
                     break;
 
                 // you can add your custom modules here ...

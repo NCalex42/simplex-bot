@@ -1,8 +1,8 @@
 package eu.ncalex42.simplexbot.ai.ollama;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +43,7 @@ public class OllamaConnection {
             connection.setDoOutput(true);
             connection.setReadTimeout(readTimeoutMilliseconds);
 
-            try (OutputStream outputStream = connection.getOutputStream()) {
+            try (BufferedOutputStream outputStream = new BufferedOutputStream(connection.getOutputStream())) {
                 final byte[] data = request.toString().getBytes(StandardCharsets.UTF_8);
                 outputStream.write(data, 0, data.length);
             }
@@ -52,7 +52,9 @@ public class OllamaConnection {
 
             String response = null;
             final int responseCode = connection.getResponseCode();
+
             if (HttpURLConnection.HTTP_OK == responseCode) {
+
                 final StringBuilder responseBuilder = new StringBuilder();
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String line;
@@ -63,8 +65,23 @@ public class OllamaConnection {
                 response = responseBuilder.toString();
 
             } else {
-                Util.logError("Ollama returned an error: " + responseCode, simplexConnection, contactsForReporting,
-                        groupsForReporting);
+
+                final StringBuilder errorBuilder = new StringBuilder();
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+                    String line;
+                    while ((line = in.readLine()) != null) {
+                        errorBuilder.append(line);
+                    }
+                }
+                final String errorMessage = errorBuilder.toString();
+
+                Util.logError(
+                        "Ollama returned an error for model '" + model + "': [" + responseCode + " "
+                                + connection.getResponseMessage() + "] " + errorMessage + "\n\n*Prompt (length = "
+                                + prompt.length() + " characters) started with:*\n"
+                                + (prompt.length() <= 100 ? prompt : prompt.substring(0, 100) + " [...]"),
+                        simplexConnection, contactsForReporting, groupsForReporting);
+                return null;
             }
 
             final long stop = System.currentTimeMillis();
@@ -82,7 +99,8 @@ public class OllamaConnection {
                 duration = "!1 " + durationInMinutes + "! minutes";
             }
 
-            Util.log(model + " response took " + duration, simplexConnection, contactsForReporting, groupsForReporting);
+            Util.log(model + " response took " + duration + " for prompt with " + prompt.length() + " characters",
+                    simplexConnection, contactsForReporting, groupsForReporting);
 
             if (null != response) {
                 response = parseOllamaResponse(response);
@@ -93,7 +111,8 @@ public class OllamaConnection {
         } catch (final Exception ex) {
             Util.logError(
                     "Unexpected exception while communicating with ollama model '" + model + "': "
-                            + Util.getStackTraceAsString(ex) + "\n\n*Prompt started with:*\n"
+                            + Util.getStackTraceAsString(ex) + "\n\n*Prompt (length = " + prompt.length()
+                            + " characters) started with:*\n"
                             + (prompt.length() <= 100 ? prompt : prompt.substring(0, 100) + " [...]"),
                     simplexConnection, contactsForReporting, groupsForReporting);
             return null;
@@ -112,7 +131,7 @@ public class OllamaConnection {
         request.put(OllamaConstants.PROMPT_KEY, prompt);
         request.put(OllamaConstants.STREAM_KEY, false);
         request.put(OllamaConstants.THINK_KEY, false);
-        request.put(OllamaConstants.KEEP_ALIVE_KEY, 0);
+        request.put(OllamaConstants.KEEP_ALIVE_KEY, 60);
 
         if ((null != systemPrompt) && !systemPrompt.isEmpty()) {
             request.put(OllamaConstants.SYSTEM_KEY, systemPrompt);

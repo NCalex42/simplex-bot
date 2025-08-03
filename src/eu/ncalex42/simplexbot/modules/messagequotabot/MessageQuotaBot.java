@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
@@ -27,6 +28,7 @@ public class MessageQuotaBot implements Runnable {
     private final SimplexConnection simplexConnection;
     private final String groupToProcess;
     private final int sleepTimeInSeconds;
+    private final int numberOfMessagesToRetrieve;
 
     private final int messageQuotaPerHour;
     private final int messageQuotaPerDay;
@@ -49,6 +51,7 @@ public class MessageQuotaBot implements Runnable {
         int spamQuotaPerDay = -1;
         int sleepTimeInSeconds = -30;
         String silentmode = "";
+        int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
         final List<String> contactsForReporting = new LinkedList<>();
         final List<String> groupsForReporting = new LinkedList<>();
 
@@ -98,6 +101,12 @@ public class MessageQuotaBot implements Runnable {
                 silentmode = value;
                 break;
 
+            case MessageQuotaBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE:
+                if (!value.isBlank()) {
+                    numberOfMessagesToRetrieve = Integer.parseInt(value);
+                }
+                break;
+
             case MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS:
                 final String[] names = value.split(",");
                 for (final String name : names) {
@@ -122,29 +131,31 @@ public class MessageQuotaBot implements Runnable {
 
         if ((port < 0) || (null == groupToProcess) || groupToProcess.isBlank() || (messageQuotaPerHour < 0)
                 || (messageQuotaPerDay < 0) || (spamQuotaPerHour < 0) || (spamQuotaPerDay < 0)) {
-            throw new IllegalArgumentException(
-                    "Some mandatory config properties are missing or are invalid! Required are: '"
-                            + MessageQuotaBotConstants.CONFIG_PORT + "', '" + MessageQuotaBotConstants.CONFIG_GROUP
-                            + "', '" + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "', '"
-                            + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "', '"
-                            + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "' and '"
-                            + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "'");
+            throw new IllegalArgumentException("[" + MessageQuotaBot.class.getSimpleName()
+                    + "] Some mandatory config properties are missing or are invalid! Required are: '"
+                    + MessageQuotaBotConstants.CONFIG_PORT + "', '" + MessageQuotaBotConstants.CONFIG_GROUP + "', '"
+                    + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "', '"
+                    + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "', '"
+                    + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "' and '"
+                    + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "'");
         }
 
-        if ((sleepTimeInSeconds < 0)
-                || (!silentmode.equalsIgnoreCase("true") && !silentmode.equalsIgnoreCase("false"))) {
-            Util.logWarning("Some config properties are missing or are invalid, using defaults!", null, null, null);
+        if ((sleepTimeInSeconds < 0) || (!silentmode.equalsIgnoreCase("true") && !silentmode.equalsIgnoreCase("false"))
+                || (numberOfMessagesToRetrieve < 0)) {
+            Util.logWarning("[" + MessageQuotaBot.class.getSimpleName()
+                    + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
 
         SimplexConnection.initSimplexConnection(port);
         return new MessageQuotaBot(SimplexConnection.get(port), groupToProcess, messageQuotaPerHour, messageQuotaPerDay,
-                spamQuotaPerHour, spamQuotaPerDay, sleepTimeInSeconds, silentmode, contactsForReporting,
-                groupsForReporting);
+                spamQuotaPerHour, spamQuotaPerDay, sleepTimeInSeconds, silentmode, numberOfMessagesToRetrieve,
+                contactsForReporting, groupsForReporting);
     }
 
-    public MessageQuotaBot(SimplexConnection simplexConnection, String groupToProcess, int messageQuotaPerHour,
+    private MessageQuotaBot(SimplexConnection simplexConnection, String groupToProcess, int messageQuotaPerHour,
             int messageQuotaPerDay, int spamQuotaPerHour, int spamQuotaPerDay, int sleepTimeInSeconds,
-            String silentMode, List<String> contactsForReporting, List<String> groupsForReporting) {
+            String silentMode, int numberOfMessagesToRetrieve, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.messageQuotaPerHour = messageQuotaPerHour;
@@ -153,6 +164,7 @@ public class MessageQuotaBot implements Runnable {
         this.spamQuotaPerDay = spamQuotaPerDay;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
         this.silentMode = silentMode.equalsIgnoreCase("false") ? false : true;
+        this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
         this.contactsForReporting = contactsForReporting;
         this.groupsForReporting = groupsForReporting;
     }
@@ -160,7 +172,7 @@ public class MessageQuotaBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(MessageQuotaBot.class.getSimpleName() + " has started with config: *"
+        Util.log(MessageQuotaBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
                 + MessageQuotaBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
                 + MessageQuotaBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
                 + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "*=" + messageQuotaPerHour + " *"
@@ -169,9 +181,11 @@ public class MessageQuotaBot implements Runnable {
                 + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "*=" + spamQuotaPerDay + " *"
                 + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
                 + MessageQuotaBotConstants.CONFIG_SILENTMODE + "*=" + silentMode + " *"
-                + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
-                + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS + "*="
-                + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting, groupsForReporting);
+                + MessageQuotaBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve
+                + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "*="
+                + Util.listToString(contactsForReporting) + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS
+                + "*=" + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting,
+                groupsForReporting);
 
         final List<GroupMessage> alreadyProcessedMessages = new LinkedList<>();
 
@@ -180,7 +194,8 @@ public class MessageQuotaBot implements Runnable {
                 try {
 
                     final List<GroupMessage> newMessages = simplexConnection.getNewGroupMessages(groupToProcess,
-                            alreadyProcessedMessages, true, contactsForReporting, groupsForReporting);
+                            alreadyProcessedMessages, true, numberOfMessagesToRetrieve, contactsForReporting,
+                            groupsForReporting);
 
                     if (!newMessages.isEmpty()) {
                         for (final GroupMessage message : newMessages) {
