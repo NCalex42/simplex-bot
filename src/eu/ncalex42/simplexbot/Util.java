@@ -19,10 +19,24 @@ public class Util {
         DEBUG, WARNING, ERROR
     }
 
+    public static void outputToContactsAndGroups(String message, SimplexConnection simplexConnection,
+            List<String> contactsForOutput, List<String> groupsForOutput, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
+
+        final String formattedMessage = formatOutputMessage(message);
+
+        if (null == simplexConnection) {
+            return;
+        }
+
+        simplexConnection.sendToContactsAndGroups(formattedMessage, contactsForOutput, groupsForOutput,
+                contactsForReporting, groupsForReporting);
+    }
+
     public static void log(String message, SimplexConnection simplexConnection, List<String> contacts,
             List<String> groups) {
 
-        final String formattedMessage = formatMessage(message, LogLevel.DEBUG);
+        final String formattedMessage = formatLogMessage(message, LogLevel.DEBUG);
         System.out.println(formattedMessage);
 
         if (null == simplexConnection) {
@@ -35,7 +49,7 @@ public class Util {
     public static void logWarning(String message, SimplexConnection simplexConnection, List<String> contacts,
             List<String> groups) {
 
-        final String formattedMessage = formatMessage(message, LogLevel.WARNING);
+        final String formattedMessage = formatLogMessage(message, LogLevel.WARNING);
         System.out.println(formattedMessage);
 
         if (null == simplexConnection) {
@@ -47,7 +61,7 @@ public class Util {
 
     public static void logError(String message, SimplexConnection simplexConnection, List<String> contacts,
             List<String> groups) {
-        final String formattedMessage = formatMessage(message, LogLevel.ERROR);
+        final String formattedMessage = formatLogMessage(message, LogLevel.ERROR);
 
         System.err.println(formattedMessage);
 
@@ -58,7 +72,17 @@ public class Util {
         simplexConnection.logToBotAdmins(formattedMessage, contacts, groups);
     }
 
-    private static String formatMessage(String message, LogLevel level) {
+    private static String formatOutputMessage(String message) {
+
+        final StringBuilder sb = new StringBuilder();
+        sb.append("*");
+        sb.append(TimeUtil.formatUtcTimestamp());
+        sb.append("* ");
+        sb.append(message);
+        return sb.toString();
+    }
+
+    private static String formatLogMessage(String message, LogLevel level) {
 
         final StringBuilder sb = new StringBuilder();
 
@@ -138,10 +162,17 @@ public class Util {
     }
 
     public static String getStackTraceAsString(Exception e) {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        return sw.toString();
+
+        String stackTrace = null;
+
+        try (StringWriter sw = new StringWriter(); PrintWriter pw = new PrintWriter(sw)) {
+            e.printStackTrace(pw);
+            stackTrace = sw.toString();
+        } catch (final IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        return stackTrace;
     }
 
     public static void trimProcessedMessages(List<GroupMessage> alreadyProcessedMessages,

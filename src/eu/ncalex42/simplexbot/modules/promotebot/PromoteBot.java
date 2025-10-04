@@ -23,6 +23,8 @@ public class PromoteBot implements Runnable {
 
     private final SimplexConnection simplexConnection;
     private final String groupToProcess;
+    private final List<String> contactsForOutput;
+    private final List<String> groupsForOutput;
 
     private final int[] weekdaysToRun;
     private final int[] hoursToRun;
@@ -39,6 +41,8 @@ public class PromoteBot implements Runnable {
 
         int port = -1;
         String groupToProcess = null;
+        final List<String> contactsForOutput = new LinkedList<>();
+        final List<String> groupsForOutput = new LinkedList<>();
         int[] weekDaysToRun = null;
         int[] hoursToRun = null;
         int sleepTimeInMinutes = -59;
@@ -64,6 +68,24 @@ public class PromoteBot implements Runnable {
 
             case PromoteBotConstants.CONFIG_GROUP:
                 groupToProcess = value;
+                break;
+
+            case PromoteBotConstants.CONFIG_OUTPUT_CONTACTS:
+                final String[] names = value.split(",");
+                for (final String name : names) {
+                    if (!name.isBlank()) {
+                        contactsForOutput.add(name.strip());
+                    }
+                }
+                break;
+
+            case PromoteBotConstants.CONFIG_OUTPUT_GROUPS:
+                final String[] groups = value.split(",");
+                for (final String group : groups) {
+                    if (!group.isBlank()) {
+                        groupsForOutput.add(group.strip());
+                    }
+                }
                 break;
 
             case PromoteBotConstants.CONFIG_WEEKDAYS:
@@ -99,8 +121,8 @@ public class PromoteBot implements Runnable {
                 break;
 
             case PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS:
-                final String[] names = value.split(",");
-                for (final String name : names) {
+                final String[] names2 = value.split(",");
+                for (final String name : names2) {
                     if (!name.isBlank()) {
                         contactsForReporting.add(name.strip());
                     }
@@ -108,8 +130,8 @@ public class PromoteBot implements Runnable {
                 break;
 
             case PromoteBotConstants.CONFIG_REPORT_TO_GROUPS:
-                final String[] groups = value.split(",");
-                for (final String group : groups) {
+                final String[] groups2 = value.split(",");
+                for (final String group : groups2) {
                     if (!group.isBlank()) {
                         groupsForReporting.add(group.strip());
                     }
@@ -133,15 +155,18 @@ public class PromoteBot implements Runnable {
         }
 
         SimplexConnection.initSimplexConnection(port);
-        return new PromoteBot(SimplexConnection.get(port), groupToProcess, weekDaysToRun, hoursToRun,
-                sleepTimeInMinutes, minWaitTimePerMemberInDays, contactsForReporting, groupsForReporting);
+        return new PromoteBot(SimplexConnection.get(port), groupToProcess, contactsForOutput, groupsForOutput,
+                weekDaysToRun, hoursToRun, sleepTimeInMinutes, minWaitTimePerMemberInDays, contactsForReporting,
+                groupsForReporting);
     }
 
-    private PromoteBot(SimplexConnection simplexConnection, String groupToProcess, int[] weekdaysToRun,
-            int[] hoursToRun, int sleepTimeInMinutes, int minWaitTimePerMemberInDays, List<String> contactsForReporting,
-            List<String> groupsForReporting) {
+    private PromoteBot(SimplexConnection simplexConnection, String groupToProcess, List<String> contactsForOutput,
+            List<String> groupsForOutput, int[] weekdaysToRun, int[] hoursToRun, int sleepTimeInMinutes,
+            int minWaitTimePerMemberInDays, List<String> contactsForReporting, List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
+        this.contactsForOutput = contactsForOutput;
+        this.groupsForOutput = groupsForOutput;
         this.weekdaysToRun = weekdaysToRun;
         this.hoursToRun = hoursToRun;
         this.sleepTimeInMinutes = Math.abs(sleepTimeInMinutes);
@@ -156,6 +181,8 @@ public class PromoteBot implements Runnable {
         Util.log(PromoteBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
                 + PromoteBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
                 + PromoteBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
+                + PromoteBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
+                + PromoteBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
                 + PromoteBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
                 + PromoteBotConstants.CONFIG_HOURS + "*=" + Util.intArrayToString(hoursToRun) + " *"
                 + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "*=" + sleepTimeInMinutes + " *"
@@ -213,8 +240,13 @@ public class PromoteBot implements Runnable {
                             countOfPromotedMembers++;
                         }
 
-                        Util.log("!2 Promoted! " + countOfPromotedMembers + " member(s)", simplexConnection,
-                                contactsForReporting, groupsForReporting);
+                        final String successMessage = "!2 Promoted! " + countOfPromotedMembers + " member(s) in group '"
+                                + groupToProcess + "'";
+                        Util.log(successMessage, simplexConnection, contactsForReporting, groupsForReporting);
+                        if (countOfPromotedMembers > 0) {
+                            Util.outputToContactsAndGroups(successMessage, simplexConnection, contactsForOutput,
+                                    groupsForOutput, contactsForReporting, groupsForReporting);
+                        }
 
                     } catch (final Exception ex) {
                         Util.logError("Unexpected exception: " + Util.getStackTraceAsString(ex), simplexConnection,

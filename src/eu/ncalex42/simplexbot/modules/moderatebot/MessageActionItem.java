@@ -33,7 +33,8 @@ public class MessageActionItem implements Comparable<MessageActionItem> {
         case BLOCK:
             switch (other.getAction()) {
             case BLOCK:
-                return 0;
+                // if both have same action, sort by message timestamp:
+                return compareByMessageTimestamp(other);
             case MODERATE:
                 return -1;
             case REPORT:
@@ -47,7 +48,8 @@ public class MessageActionItem implements Comparable<MessageActionItem> {
             case BLOCK:
                 return 1;
             case MODERATE:
-                return 0;
+                // if both have same action, sort by message timestamp:
+                return compareByMessageTimestamp(other);
             case REPORT:
                 return -1;
             default:
@@ -61,13 +63,30 @@ public class MessageActionItem implements Comparable<MessageActionItem> {
             case MODERATE:
                 return 1;
             case REPORT:
-                return 0;
+                // if both have same action, sort by message timestamp:
+                return compareByMessageTimestamp(other);
             default:
                 throw new IllegalStateException(
                         "unknown " + ModerateAction.class.getSimpleName() + ": " + other.getAction());
             }
         default:
             throw new IllegalStateException("unknown " + ModerateAction.class.getSimpleName() + ": " + action);
+        }
+    }
+
+    private int compareByMessageTimestamp(MessageActionItem other) {
+
+        final String thisItemTs = this.getMessage().getItemTs();
+        final String otherItemTs = other.getMessage().getItemTs();
+
+        if ((null == thisItemTs) && (null == otherItemTs)) {
+            return 0;
+        } else if (null == thisItemTs) {
+            return -1;
+        } else if (null == otherItemTs) {
+            return 1;
+        } else {
+            return thisItemTs.compareTo(otherItemTs);
         }
     }
 }
