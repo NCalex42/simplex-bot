@@ -6,6 +6,8 @@ public class PromoteBotConstants {
 
     static final String CONFIG_PORT = "port";
     static final String CONFIG_GROUP = "group";
+    static final String CONFIG_OUTPUT_CONTACTS = "output-contacts";
+    static final String CONFIG_OUTPUT_GROUPS = "output-groups";
     static final String CONFIG_WEEKDAYS = "weekdays";
     static final String CONFIG_HOURS = "hours";
     static final String CONFIG_SLEEP_TIME_MINUTES = "sleep-time-minutes";

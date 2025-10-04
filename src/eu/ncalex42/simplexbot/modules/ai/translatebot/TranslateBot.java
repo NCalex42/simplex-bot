@@ -405,9 +405,13 @@ public class TranslateBot implements Runnable {
     }
 
     private String sanitizeAiResponse(String aiResponse) {
+
         final String[] aiResponseSplit = aiResponse.split("</think>");
         final String aiResponseWithoutThinking = aiResponseSplit[aiResponseSplit.length - 1];
-        return aiResponseWithoutThinking.replace(secretPromptMarker, "").strip();
+        String sanitizedAiResponse = aiResponseWithoutThinking.replace(secretPromptMarker, "").strip();
+        sanitizedAiResponse = sanitizedAiResponse.equals("<empty/nothing>") ? "" : sanitizedAiResponse;
+        sanitizedAiResponse = sanitizedAiResponse.equals("<translated text>") ? "" : sanitizedAiResponse;
+        return sanitizedAiResponse;
     }
 
     private boolean shouldRun() {

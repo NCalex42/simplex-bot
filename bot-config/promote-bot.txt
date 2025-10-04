@@ -8,6 +8,12 @@ group=
 
 
 
+# [optional] comma separated list of contacts to send the result to:
+output-contacts=
+
+# [optional] comma separated list of groups to send the result to:
+output-groups=
+
 # [optional] weekdays to run (i.e. 1=Monday, 7=Sunday) as comma separated list of numbers (1-7);
 # to disable use "-1" (without the quotes), to always run leave empty:
 weekdays=

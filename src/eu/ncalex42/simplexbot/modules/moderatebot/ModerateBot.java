@@ -30,6 +30,8 @@ public class ModerateBot implements Runnable {
     private final SimplexConnection simplexConnection;
     private final String groupToProcess;
 
+    private final List<String> contactsForOutput;
+    private final List<String> groupsForOutput;
     private final int sleepTimeInSeconds;
     private final int numberOfMessagesToRetrieve;
     private final boolean persistState;
@@ -71,6 +73,8 @@ public class ModerateBot implements Runnable {
         // read config file:
         int port = -1;
         String groupToProcess = null;
+        final List<String> contactsForOutput = new LinkedList<>();
+        final List<String> groupsForOutput = new LinkedList<>();
         int sleepTimeInSeconds = -60;
         int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
         String persistState = "";
@@ -97,6 +101,24 @@ public class ModerateBot implements Runnable {
                 groupToProcess = value;
                 break;
 
+            case ModerateBotConstants.CONFIG_OUTPUT_CONTACTS:
+                final String[] names = value.split(",");
+                for (final String name : names) {
+                    if (!name.isBlank()) {
+                        contactsForOutput.add(name.strip());
+                    }
+                }
+                break;
+
+            case ModerateBotConstants.CONFIG_OUTPUT_GROUPS:
+                final String[] groups = value.split(",");
+                for (final String group : groups) {
+                    if (!group.isBlank()) {
+                        groupsForOutput.add(group.strip());
+                    }
+                }
+                break;
+
             case ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS:
                 if (!value.isBlank()) {
                     sleepTimeInSeconds = Integer.parseInt(value);
@@ -114,8 +136,8 @@ public class ModerateBot implements Runnable {
                 break;
 
             case ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS:
-                final String[] names = value.split(",");
-                for (final String name : names) {
+                final String[] names2 = value.split(",");
+                for (final String name : names2) {
                     if (!name.isBlank()) {
                         contactsForReporting.add(name.strip());
                     }
@@ -123,8 +145,8 @@ public class ModerateBot implements Runnable {
                 break;
 
             case ModerateBotConstants.CONFIG_REPORT_TO_GROUPS:
-                final String[] groups = value.split(",");
-                for (final String group : groups) {
+                final String[] groups2 = value.split(",");
+                for (final String group : groups2) {
                     if (!group.isBlank()) {
                         groupsForReporting.add(group.strip());
                     }
@@ -331,27 +353,30 @@ public class ModerateBot implements Runnable {
         }
 
         SimplexConnection.initSimplexConnection(port);
-        return new ModerateBot(SimplexConnection.get(port), groupToProcess, sleepTimeInSeconds,
-                numberOfMessagesToRetrieve, persistState, contactsForReporting, groupsForReporting, blockImages,
-                blockVideos, blockFiles, blockLinks, blockVoice, keywordBlockBlacklist, regexBlockBlacklist,
-                userBlockBlacklist, moderateImages, moderateVideos, moderateFiles, moderateLinks, moderateVoice,
-                keywordModerateBlacklist, regexModerateBlacklist, userModerateBlacklist, reportImages, reportVideos,
-                reportFiles, reportLinks, reportVoice, keywordReportBlacklist, regexReportBlacklist,
+        return new ModerateBot(SimplexConnection.get(port), groupToProcess, contactsForOutput, groupsForOutput,
+                sleepTimeInSeconds, numberOfMessagesToRetrieve, persistState, contactsForReporting, groupsForReporting,
+                blockImages, blockVideos, blockFiles, blockLinks, blockVoice, keywordBlockBlacklist,
+                regexBlockBlacklist, userBlockBlacklist, moderateImages, moderateVideos, moderateFiles, moderateLinks,
+                moderateVoice, keywordModerateBlacklist, regexModerateBlacklist, userModerateBlacklist, reportImages,
+                reportVideos, reportFiles, reportLinks, reportVoice, keywordReportBlacklist, regexReportBlacklist,
                 userReportBlacklist);
     }
 
-    private ModerateBot(SimplexConnection simplexConnection, String groupToProcess, int sleepTimeInSeconds,
-            int numberOfMessagesToRetrieve, String persistState, List<String> contactsForReporting,
-            List<String> groupsForReporting, boolean blockImages, boolean blockVideos, boolean blockFiles,
-            boolean blockLinks, boolean blockVoice, List<String> keywordBlockBlacklist,
-            Map<String, Pattern> regexBlockBlacklist, List<String> userBlockBlacklist, boolean moderateImages,
-            boolean moderateVideos, boolean moderateFiles, boolean moderateLinks, boolean moderateVoice,
-            List<String> keywordModerateBlacklist, Map<String, Pattern> regexModerateBlacklist,
-            List<String> userModerateBlacklist, boolean reportImages, boolean reportVideos, boolean reportFiles,
-            boolean reportLinks, boolean reportVoice, List<String> keywordReportBlacklist,
-            Map<String, Pattern> regexReportBlacklist, List<String> userReportBlacklist) {
+    private ModerateBot(SimplexConnection simplexConnection, String groupToProcess, List<String> contactsForOutput,
+            List<String> groupsForOutput, int sleepTimeInSeconds, int numberOfMessagesToRetrieve, String persistState,
+            List<String> contactsForReporting, List<String> groupsForReporting, boolean blockImages,
+            boolean blockVideos, boolean blockFiles, boolean blockLinks, boolean blockVoice,
+            List<String> keywordBlockBlacklist, Map<String, Pattern> regexBlockBlacklist,
+            List<String> userBlockBlacklist, boolean moderateImages, boolean moderateVideos, boolean moderateFiles,
+            boolean moderateLinks, boolean moderateVoice, List<String> keywordModerateBlacklist,
+            Map<String, Pattern> regexModerateBlacklist, List<String> userModerateBlacklist, boolean reportImages,
+            boolean reportVideos, boolean reportFiles, boolean reportLinks, boolean reportVoice,
+            List<String> keywordReportBlacklist, Map<String, Pattern> regexReportBlacklist,
+            List<String> userReportBlacklist) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
+        this.contactsForOutput = contactsForOutput;
+        this.groupsForOutput = groupsForOutput;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
         this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
         this.persistState = persistState.equalsIgnoreCase("true") ? true : false;
@@ -389,6 +414,8 @@ public class ModerateBot implements Runnable {
         Util.log(ModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
                 + ModerateBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
                 + ModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
+                + ModerateBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
+                + ModerateBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
                 + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
                 + ModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
                 + ModerateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState + " *"
@@ -686,20 +713,18 @@ public class ModerateBot implements Runnable {
             }
         }
 
-        private void blockUser(GroupMessage message, String reason) {
+        private void blockUser(GroupMessage groupMessage, String reason) {
 
-            Util.log(
-                    "!6 Blocking! member *'" + message.getMember().getDisplayName() + "'* ["
-                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
-                            + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    simplexConnection, contactsForReporting, groupsForReporting);
-            if (!message.getText().isEmpty()) {
-                System.out.println(message.getText());
-                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
-            }
+            final String messageToReport = "!6 Blocking! member *'" + groupMessage.getMember().getDisplayName() + "'* ["
+                    + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
+                    + reason + " !" + (groupMessage.getText().isEmpty() ? "" : " Original message:");
 
-            if (message.getMember().hasPrivileges()) {
-                Util.logWarning("Member has privileges: !2 BLOCKING IS REJECTED!", simplexConnection,
+            writeMessages(messageToReport, groupMessage.getText());
+
+            if (groupMessage.getMember().hasPrivileges()) {
+                final String warnMessage = "Member has privileges: !2 BLOCKING IS REJECTED!";
+                Util.logWarning(warnMessage, simplexConnection, contactsForReporting, groupsForReporting);
+                Util.outputToContactsAndGroups(warnMessage, simplexConnection, contactsForOutput, groupsForOutput,
                         contactsForReporting, groupsForReporting);
                 return;
             }
@@ -707,47 +732,57 @@ public class ModerateBot implements Runnable {
             // Check latest member status to avoid multiple blocking:
             final List<GroupMember> groupMemberList = simplexConnection.getGroupMembers(groupToProcess,
                     contactsForReporting, groupsForReporting);
-            final GroupMember updatedMember = groupMemberList.get(groupMemberList.indexOf(message.getMember()));
+            final GroupMember updatedMember = groupMemberList.get(groupMemberList.indexOf(groupMessage.getMember()));
             if (updatedMember.isBlocked()) {
                 return;
             }
 
-            simplexConnection.blockForAll(groupToProcess, message.getMember().getLocalName(), contactsForReporting,
+            simplexConnection.blockForAll(groupToProcess, groupMessage.getMember().getLocalName(), contactsForReporting,
                     groupsForReporting);
         }
 
-        private void moderateMessage(GroupMessage message, String reason) {
+        private void moderateMessage(GroupMessage groupMessage, String reason) {
 
-            Util.log(
-                    "!4 Moderating! message of member *'" + message.getMember().getDisplayName() + "'* ["
-                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
-                            + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    simplexConnection, contactsForReporting, groupsForReporting);
-            if (!message.getText().isEmpty()) {
-                System.out.println(message.getText());
-                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
-            }
+            final String messageToReport = "!4 Moderating! message of member *'"
+                    + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
+                    + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
+                    + (groupMessage.getText().isEmpty() ? "" : " Original message:");
 
-            if (message.getMember().hasPrivileges()) {
-                Util.logWarning("Member has privileges: !2 MODERATION IS REJECTED!", simplexConnection,
+            writeMessages(messageToReport, groupMessage.getText());
+
+            if (groupMessage.getMember().hasPrivileges()) {
+                final String warnMessage = "Member has privileges: !2 MODERATION IS REJECTED!";
+                Util.logWarning(warnMessage, simplexConnection, contactsForReporting, groupsForReporting);
+                Util.outputToContactsAndGroups(warnMessage, simplexConnection, contactsForOutput, groupsForOutput,
                         contactsForReporting, groupsForReporting);
                 return;
             }
 
-            simplexConnection.moderateGroupMessage(message.getGroupId(), message.getId(), contactsForReporting,
-                    groupsForReporting);
+            simplexConnection.moderateGroupMessage(groupMessage.getGroupId(), groupMessage.getId(),
+                    contactsForReporting, groupsForReporting);
         }
 
-        private void reportMessage(GroupMessage message, String reason) {
+        private void reportMessage(GroupMessage groupMessage, String reason) {
 
-            Util.log(
-                    "!5 Reporting! message of member *'" + message.getMember().getDisplayName() + "'* ["
-                            + message.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
-                            + reason + " !" + (message.getText().isEmpty() ? "" : " Original message:"),
-                    simplexConnection, contactsForReporting, groupsForReporting);
-            if (!message.getText().isEmpty()) {
-                System.out.println(message.getText());
-                simplexConnection.logToBotAdmins(message.getText(), contactsForReporting, groupsForReporting);
+            final String messageToReport = "!5 Reporting! message of member *'"
+                    + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
+                    + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
+                    + (groupMessage.getText().isEmpty() ? "" : " Original message:");
+
+            writeMessages(messageToReport, groupMessage.getText());
+        }
+
+        private void writeMessages(String messageToReport, String groupMessageText) {
+
+            Util.log(messageToReport, simplexConnection, contactsForReporting, groupsForReporting);
+            Util.outputToContactsAndGroups(messageToReport, simplexConnection, contactsForOutput, groupsForOutput,
+                    contactsForReporting, groupsForReporting);
+
+            if (!groupMessageText.isEmpty()) {
+                System.out.println(groupMessageText);
+                simplexConnection.logToBotAdmins(groupMessageText, contactsForReporting, groupsForReporting);
+                simplexConnection.sendToContactsAndGroups(groupMessageText, contactsForOutput, groupsForOutput,
+                        contactsForReporting, groupsForReporting);
             }
         }
     }

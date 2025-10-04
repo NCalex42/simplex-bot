@@ -10,6 +10,8 @@ public class ModerateBotConstants {
 
     static final String CONFIG_PORT = "port";
     static final String CONFIG_GROUP = "group";
+    static final String CONFIG_OUTPUT_CONTACTS = "output-contacts";
+    static final String CONFIG_OUTPUT_GROUPS = "output-groups";
     static final String CONFIG_SLEEP_TIME_SECONDS = "sleep-time-seconds";
     static final String CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE = "number-of-messages-to-retrieve";
     static final String CONFIG_PERSIST_STATE = "persist-state";

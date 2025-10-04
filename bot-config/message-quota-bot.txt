@@ -20,6 +20,12 @@ spam-quota-per-day=
 
 
 
+# [optional] comma separated list of contacts to send the result to:
+output-contacts=
+
+# [optional] comma separated list of groups to send the result to:
+output-groups=
+
 # [optional] how long to sleep between checks (in seconds):
 sleep-time-seconds=
 

@@ -35,6 +35,8 @@ public class MessageQuotaBot implements Runnable {
     private final int spamQuotaPerHour;
     private final int spamQuotaPerDay;
     private final Map<GroupMember, List<GroupMessage>> quotaRecord = new HashMap<>();
+    private final List<String> contactsForOutput;
+    private final List<String> groupsForOutput;
     private final boolean silentMode;
 
     private final List<String> contactsForReporting;
@@ -49,6 +51,8 @@ public class MessageQuotaBot implements Runnable {
         int messageQuotaPerDay = -1;
         int spamQuotaPerHour = -1;
         int spamQuotaPerDay = -1;
+        final List<String> contactsForOutput = new LinkedList<>();
+        final List<String> groupsForOutput = new LinkedList<>();
         int sleepTimeInSeconds = -30;
         String silentmode = "";
         int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
@@ -91,6 +95,24 @@ public class MessageQuotaBot implements Runnable {
                 spamQuotaPerDay = Integer.parseInt(value);
                 break;
 
+            case MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS:
+                final String[] names = value.split(",");
+                for (final String name : names) {
+                    if (!name.isBlank()) {
+                        contactsForOutput.add(name.strip());
+                    }
+                }
+                break;
+
+            case MessageQuotaBotConstants.CONFIG_OUTPUT_GROUPS:
+                final String[] groups = value.split(",");
+                for (final String group : groups) {
+                    if (!group.isBlank()) {
+                        groupsForOutput.add(group.strip());
+                    }
+                }
+                break;
+
             case MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS:
                 if (!value.isBlank()) {
                     sleepTimeInSeconds = Integer.parseInt(value);
@@ -108,8 +130,8 @@ public class MessageQuotaBot implements Runnable {
                 break;
 
             case MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS:
-                final String[] names = value.split(",");
-                for (final String name : names) {
+                final String[] names2 = value.split(",");
+                for (final String name : names2) {
                     if (!name.isBlank()) {
                         contactsForReporting.add(name.strip());
                     }
@@ -117,8 +139,8 @@ public class MessageQuotaBot implements Runnable {
                 break;
 
             case MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS:
-                final String[] groups = value.split(",");
-                for (final String group : groups) {
+                final String[] groups2 = value.split(",");
+                for (final String group : groups2) {
                     if (!group.isBlank()) {
                         groupsForReporting.add(group.strip());
                     }
@@ -148,20 +170,22 @@ public class MessageQuotaBot implements Runnable {
 
         SimplexConnection.initSimplexConnection(port);
         return new MessageQuotaBot(SimplexConnection.get(port), groupToProcess, messageQuotaPerHour, messageQuotaPerDay,
-                spamQuotaPerHour, spamQuotaPerDay, sleepTimeInSeconds, silentmode, numberOfMessagesToRetrieve,
-                contactsForReporting, groupsForReporting);
+                spamQuotaPerHour, spamQuotaPerDay, contactsForOutput, groupsForOutput, sleepTimeInSeconds, silentmode,
+                numberOfMessagesToRetrieve, contactsForReporting, groupsForReporting);
     }
 
     private MessageQuotaBot(SimplexConnection simplexConnection, String groupToProcess, int messageQuotaPerHour,
-            int messageQuotaPerDay, int spamQuotaPerHour, int spamQuotaPerDay, int sleepTimeInSeconds,
-            String silentMode, int numberOfMessagesToRetrieve, List<String> contactsForReporting,
-            List<String> groupsForReporting) {
+            int messageQuotaPerDay, int spamQuotaPerHour, int spamQuotaPerDay, List<String> contactsForOutput,
+            List<String> groupsForOutput, int sleepTimeInSeconds, String silentMode, int numberOfMessagesToRetrieve,
+            List<String> contactsForReporting, List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.messageQuotaPerHour = messageQuotaPerHour;
         this.messageQuotaPerDay = messageQuotaPerDay;
         this.spamQuotaPerHour = spamQuotaPerHour;
         this.spamQuotaPerDay = spamQuotaPerDay;
+        this.contactsForOutput = contactsForOutput;
+        this.groupsForOutput = groupsForOutput;
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
         this.silentMode = silentMode.equalsIgnoreCase("false") ? false : true;
         this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
@@ -179,6 +203,8 @@ public class MessageQuotaBot implements Runnable {
                 + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "*=" + messageQuotaPerDay + " *"
                 + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "*=" + spamQuotaPerHour + " *"
                 + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "*=" + spamQuotaPerDay + " *"
+                + MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
+                + MessageQuotaBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
                 + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
                 + MessageQuotaBotConstants.CONFIG_SILENTMODE + "*=" + silentMode + " *"
                 + MessageQuotaBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve
@@ -347,12 +373,14 @@ public class MessageQuotaBot implements Runnable {
     private void downgradeMember(GroupMember member, int messageCountWithinHour, int messageCountWithinDay,
             int maxSpamCountWithinHour, int maxSpamCountWithinDay, boolean spam) {
 
-        Util.log(
-                "!6 Downgrading! member *'" + member.getDisplayName() + "'* [" + member.getLocalName() + "] in group *'"
-                        + groupToProcess + "'* to *OBSERVER* : messageCountWithinHour=" + messageCountWithinHour
-                        + " messageCountWithinDay=" + messageCountWithinDay + " maxSpamCountWithinHour="
-                        + maxSpamCountWithinHour + " maxSpamCountWithinDay=" + maxSpamCountWithinDay,
-                simplexConnection, contactsForReporting, groupsForReporting);
+        final String downgradeMessage = "!6 Downgrading! member *'" + member.getDisplayName() + "'* ["
+                + member.getLocalName() + "] in group *'" + groupToProcess
+                + "'* to *OBSERVER* : messageCountWithinHour=" + messageCountWithinHour + " messageCountWithinDay="
+                + messageCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
+                + " maxSpamCountWithinDay=" + maxSpamCountWithinDay;
+        Util.log(downgradeMessage, simplexConnection, contactsForReporting, groupsForReporting);
+        Util.outputToContactsAndGroups(downgradeMessage, simplexConnection, contactsForOutput, groupsForOutput,
+                contactsForReporting, groupsForReporting);
 
         if (!simplexConnection.changeGroupMemberRole(groupToProcess, member.getLocalName(), GroupMember.ROLE_OBSERVER,
                 contactsForReporting, groupsForReporting)) {

@@ -10,6 +10,8 @@ public class MessageQuotaBotConstants {
     static final String CONFIG_MESSAGE_QUOTA_PER_DAY = "message-quota-per-day";
     static final String CONFIG_SPAM_QUOTA_PER_HOUR = "spam-quota-per-hour";
     static final String CONFIG_SPAM_QUOTA_PER_DAY = "spam-quota-per-day";
+    static final String CONFIG_OUTPUT_CONTACTS = "output-contacts";
+    static final String CONFIG_OUTPUT_GROUPS = "output-groups";
     static final String CONFIG_SLEEP_TIME_SECONDS = "sleep-time-seconds";
     static final String CONFIG_SILENTMODE = "silentmode";
     static final String CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE = "number-of-messages-to-retrieve";
