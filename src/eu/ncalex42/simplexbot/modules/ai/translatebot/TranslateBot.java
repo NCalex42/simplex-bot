@@ -345,7 +345,7 @@ public class TranslateBot implements Runnable {
 
     private void translateMessage(GroupMessage message) {
 
-        if (message.getText().isBlank()) {
+        if ((null == message.getText()) || message.getText().isBlank()) {
             return;
         }
 
@@ -370,7 +370,8 @@ public class TranslateBot implements Runnable {
             }
 
             final String sanitizedResponse = sanitizeAiResponse(aiResponse);
-            if (!alwaysTranslate && (sanitizedResponse.isBlank() || sanitizedResponse.equals(message.getText()))) {
+            if (!alwaysTranslate
+                    && (sanitizedResponse.isBlank() || sanitizedResponse.equals(message.getText().strip()))) {
                 continue;
             }
 
