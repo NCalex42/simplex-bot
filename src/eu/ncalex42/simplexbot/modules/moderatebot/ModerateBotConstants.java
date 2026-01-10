@@ -3,10 +3,10 @@ package eu.ncalex42.simplexbot.modules.moderatebot;
 public class ModerateBotConstants {
 
     public static final String CFG_FILE_NAME = "moderate-bot.txt";
-    static final String BLOCK_BLACKLIST_FILENAME = "moderate-bot-block-blacklist.txt";
-    static final String MODERATE_BLACKLIST_FILENAME = "moderate-bot-moderate-blacklist.txt";
-    static final String REPORT_BLACKLIST_FILENAME = "moderate-bot-report-blacklist.txt";
-    static final String PROCESSED_MESSAGES_CACHE_FILE = "moderate-bot-message-cache.tmp";
+    static final String BLOCK_BLACKLIST_FILE_NAME = "moderate-bot-block-blacklist.txt";
+    static final String MODERATE_BLACKLIST_FILE_NAME = "moderate-bot-moderate-blacklist.txt";
+    static final String REPORT_BLACKLIST_FILE_NAME = "moderate-bot-report-blacklist.txt";
+    static final String PROCESSED_MESSAGES_CACHE_FILE_NAME = "moderate-bot-message-cache.tmp";
 
     static final String CONFIG_PORT = "port";
     static final String CONFIG_GROUP = "group";

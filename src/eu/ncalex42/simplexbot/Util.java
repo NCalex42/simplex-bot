@@ -143,7 +143,7 @@ public class Util {
         return sb.toString();
     }
 
-    public static String listToString(List<String> list) {
+    public static String listToString(List<? extends Object> list) {
 
         if (null == list) {
             return "null";

@@ -166,7 +166,7 @@ public class ModerateBot implements Runnable {
         boolean blockFiles = false;
         boolean blockLinks = false;
         boolean blockVoice = false;
-        final Path blockListFile = configFile.getParent().resolve(ModerateBotConstants.BLOCK_BLACKLIST_FILENAME);
+        final Path blockListFile = configFile.getParent().resolve(ModerateBotConstants.BLOCK_BLACKLIST_FILE_NAME);
         if (Files.exists(blockListFile)) {
             for (String line : Files.lines(blockListFile, StandardCharsets.UTF_8).collect(Collectors.toList())) {
 
@@ -212,7 +212,7 @@ public class ModerateBot implements Runnable {
                 }
 
                 if (!line.isBlank()) {
-                    keywordBlockBlacklist.add(line.toLowerCase());
+                    keywordBlockBlacklist.add(line.toLowerCase(Locale.US));
                     continue;
                 }
             }
@@ -227,7 +227,8 @@ public class ModerateBot implements Runnable {
         boolean moderateFiles = false;
         boolean moderateLinks = false;
         boolean moderateVoice = false;
-        final Path moderateBlacklist = configFile.getParent().resolve(ModerateBotConstants.MODERATE_BLACKLIST_FILENAME);
+        final Path moderateBlacklist = configFile.getParent()
+                .resolve(ModerateBotConstants.MODERATE_BLACKLIST_FILE_NAME);
         if (Files.exists(moderateBlacklist)) {
             for (String line : Files.lines(moderateBlacklist, StandardCharsets.UTF_8).collect(Collectors.toList())) {
 
@@ -273,7 +274,7 @@ public class ModerateBot implements Runnable {
                 }
 
                 if (!line.isBlank()) {
-                    keywordModerateBlacklist.add(line.toLowerCase());
+                    keywordModerateBlacklist.add(line.toLowerCase(Locale.US));
                     continue;
                 }
             }
@@ -288,7 +289,7 @@ public class ModerateBot implements Runnable {
         boolean reportFiles = false;
         boolean reportLinks = false;
         boolean reportVoice = false;
-        final Path reportBlacklist = configFile.getParent().resolve(ModerateBotConstants.REPORT_BLACKLIST_FILENAME);
+        final Path reportBlacklist = configFile.getParent().resolve(ModerateBotConstants.REPORT_BLACKLIST_FILE_NAME);
         if (Files.exists(reportBlacklist)) {
             for (String line : Files.lines(reportBlacklist, StandardCharsets.UTF_8).collect(Collectors.toList())) {
 
@@ -334,7 +335,7 @@ public class ModerateBot implements Runnable {
                 }
 
                 if (!line.isBlank()) {
-                    keywordReportBlacklist.add(line.toLowerCase());
+                    keywordReportBlacklist.add(line.toLowerCase(Locale.US));
                     continue;
                 }
             }
@@ -443,13 +444,13 @@ public class ModerateBot implements Runnable {
             final List<GroupMessage> alreadyProcessedMessages;
             if (persistState) {
                 alreadyProcessedMessages = Util.initCacheFile(
-                        Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                        Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME),
                         groupToProcess, numberOfMessagesToRetrieve, simplexConnection, contactsForReporting,
                         groupsForReporting);
             } else {
                 try {
                     Files.deleteIfExists(
-                            Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE));
+                            Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME));
                 } catch (final Exception ex) {
                     Util.logWarning("Unused cache file could not be deleted: " + Util.getStackTraceAsString(ex),
                             simplexConnection, contactsForReporting, groupsForReporting);
@@ -487,7 +488,8 @@ public class ModerateBot implements Runnable {
 
                         if (persistState) {
                             Util.addProcessedMessageToFile(message,
-                                    Path.of(Start.CONFIG_DIRECTORY, ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                                    Path.of(Start.CONFIG_DIRECTORY,
+                                            ModerateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME),
                                     numberOfMessagesToRetrieve);
                         }
                     }
@@ -545,7 +547,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String keyword : keywordBlockBlacklist) {
-            if (message.getText().toLowerCase().contains(keyword.toLowerCase())) {
+            if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
                 actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*KEYWORD* '" + keyword + "'"));
                 return;
             }
@@ -604,7 +606,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String keyword : keywordModerateBlacklist) {
-            if (message.getText().toLowerCase().contains(keyword.toLowerCase())) {
+            if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
                 actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*KEYWORD* '" + keyword + "'"));
                 return;
             }
@@ -653,7 +655,7 @@ public class ModerateBot implements Runnable {
         }
 
         for (final String keyword : keywordReportBlacklist) {
-            if (message.getText().toLowerCase().contains(keyword.toLowerCase())) {
+            if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
                 actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*KEYWORD* '" + keyword + "'"));
                 return;
             }
@@ -717,7 +719,7 @@ public class ModerateBot implements Runnable {
 
             final String messageToReport = "!6 Blocking! member *'" + groupMessage.getMember().getDisplayName() + "'* ["
                     + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
-                    + reason + " !" + (groupMessage.getText().isEmpty() ? "" : " Original message:");
+                    + reason + " !" + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());
 
@@ -746,7 +748,7 @@ public class ModerateBot implements Runnable {
             final String messageToReport = "!4 Moderating! message of member *'"
                     + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
                     + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
-                    + (groupMessage.getText().isEmpty() ? "" : " Original message:");
+                    + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());
 
@@ -767,7 +769,7 @@ public class ModerateBot implements Runnable {
             final String messageToReport = "!5 Reporting! message of member *'"
                     + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
                     + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
-                    + (groupMessage.getText().isEmpty() ? "" : " Original message:");
+                    + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());
         }

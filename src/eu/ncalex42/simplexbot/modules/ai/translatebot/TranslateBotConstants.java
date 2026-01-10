@@ -3,7 +3,7 @@ package eu.ncalex42.simplexbot.modules.ai.translatebot;
 public class TranslateBotConstants {
 
     public static final String CFG_FILE_NAME = "translate-bot.txt";
-    static final String PROCESSED_MESSAGES_CACHE_FILE = "translate-bot-message-cache.tmp";
+    static final String PROCESSED_MESSAGES_CACHE_FILE_NAME = "translate-bot-message-cache.tmp";
 
     static final String CONFIG_PORT = "port";
     static final String CONFIG_GROUP = "group";

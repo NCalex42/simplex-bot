@@ -288,13 +288,13 @@ public class TranslateBot implements Runnable {
             final List<GroupMessage> alreadyProcessedMessages;
             if (persistState) {
                 alreadyProcessedMessages = Util.initCacheFile(
-                        Path.of(Start.CONFIG_DIRECTORY, TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                        Path.of(Start.CONFIG_DIRECTORY, TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME),
                         groupToProcess, numberOfMessagesToRetrieve, simplexConnection, contactsForReporting,
                         groupsForReporting);
             } else {
                 try {
                     Files.deleteIfExists(
-                            Path.of(Start.CONFIG_DIRECTORY, TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE));
+                            Path.of(Start.CONFIG_DIRECTORY, TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME));
                 } catch (final Exception ex) {
                     Util.logWarning("Unused cache file could not be deleted: " + Util.getStackTraceAsString(ex),
                             simplexConnection, contactsForReporting, groupsForReporting);
@@ -321,7 +321,7 @@ public class TranslateBot implements Runnable {
                                 if (persistState) {
                                     Util.addProcessedMessageToFile(message,
                                             Path.of(Start.CONFIG_DIRECTORY,
-                                                    TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE),
+                                                    TranslateBotConstants.PROCESSED_MESSAGES_CACHE_FILE_NAME),
                                             numberOfMessagesToRetrieve);
                                 }
                             }
@@ -349,7 +349,7 @@ public class TranslateBot implements Runnable {
             return;
         }
 
-        final String prompt = generatePrompt(message);
+        final String prompt = generatePrompt(message.getText());
         final String systemPrompt = buildSystemPrompt();
 
         for (final String model : ollamaModels) {
@@ -382,9 +382,9 @@ public class TranslateBot implements Runnable {
         }
     }
 
-    private String generatePrompt(GroupMessage message) {
-        return "\n\n" + secretPromptMarker + "\n\n" + message.getText() + "\n\n" + secretPromptMarker + "\n\n"
-                + "Remember: " + buildSystemPrompt();
+    private String generatePrompt(String message) {
+        return "\n\n" + secretPromptMarker + "\n\n" + message + "\n\n" + secretPromptMarker + "\n\n" + "Remember: "
+                + buildSystemPrompt();
     }
 
     private String buildSystemPrompt() {
@@ -416,10 +416,7 @@ public class TranslateBot implements Runnable {
     }
 
     private boolean shouldRun() {
-        if (checkWeekdays() && checkHours()) {
-            return true;
-        }
-        return false;
+        return checkWeekdays() && checkHours();
     }
 
     private boolean checkWeekdays() {
