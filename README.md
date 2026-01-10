@@ -27,6 +27,13 @@ It currently contains modules for moderating public groups and processing groups
 - needs local Ollama LLM
 - can translate messages in groups to another language
 
+#### ai-moderate-bot:
+- needs local Ollama LLM
+- can block group members for all based on a local LLM's evaluation of the text message regarding a given topic/query
+- can downgrade group members to 'observer' based on a local LLM's evaluation of the text message regarding a given topic/query
+- can moderate messages based on a local LLM's evaluation of the text message regarding a given topic/query
+- can report messages (i.e. log to console or send to configured contacts or groups) based on a local LLM's evaluation of the text message regarding a given topic/query
+
 
 
 ## How to use it?
@@ -39,8 +46,8 @@ Note: The `bot-config` folder must be located in your current working directory,
 
 
 ## What else?
-- requires SimpleX cli-version (tested with 6.4.5)
+- requires SimpleX cli-version (tested with 6.4.8)
 - requires Java >= 11
-- for A.I. modules: requires local Ollama (tested with 0.12.6)
+- for A.I. modules: requires local Ollama (tested with 0.13.5)
 - for developers: requires `org.json`
 

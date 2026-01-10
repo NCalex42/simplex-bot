@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -35,7 +36,7 @@ public class OllamaConnection {
         try {
             final JSONObject request = buildOllamaRequest(model, systemPrompt, prompt);
 
-            final URL url = new URL(OllamaConstants.OLLAMA_GENERATE_URL);
+            final URL url = new URI(OllamaConstants.OLLAMA_GENERATE_URL).toURL();
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; utf-8");
@@ -79,7 +80,7 @@ public class OllamaConnection {
                         "Ollama returned an error for model '" + model + "': [" + responseCode + " "
                                 + connection.getResponseMessage() + "] " + errorMessage + "\n\n*Prompt (length = "
                                 + prompt.length() + " characters) started with:*\n"
-                                + (prompt.length() <= 100 ? prompt : prompt.substring(0, 100) + " [...]"),
+                                + (prompt.length() <= 200 ? prompt : prompt.substring(0, 200) + " [...]"),
                         simplexConnection, contactsForReporting, groupsForReporting);
                 return null;
             }

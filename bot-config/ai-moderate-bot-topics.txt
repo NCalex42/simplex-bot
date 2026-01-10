@@ -1,0 +1,25 @@
+# UTF8 without BOM
+#
+# Topic list: Here you can define topics or queries that the llm should check for each message.
+#
+# Usage:
+# If line starts with '#' or line is blank --> will be ignored.
+# Each line can contain a topic or query with its threshold values for reporting, moderation, downgrading to 'observer' and blocking.
+# A valid line starts with the threshold values separated by commas, followed by a semicolon and the topic or query.
+# Valid threshold values are:
+#  0 --> disabled
+#  1 --> "definitely no"
+#  2 --> "probably no"
+#  3 --> "maybe/don't know"
+#  4 --> "probably yes"
+#  5 --> "definitely yes"
+#
+# Example:
+#---------
+# 3,5,0,0; Does this message clearly contain NSFW content?
+#---------
+# => would moderate all messages that are definitely NSFW (value 5), and also report all messages that are or could be NSFW (values 3,4,5).
+#
+#
+# REPORTING-Threshold , MODERATION-Threshold , DOWNGRADING-Threshold , BLOCKING-Threshold ; TOPIC/QUERY
+
