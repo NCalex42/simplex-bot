@@ -49,6 +49,9 @@ reveal-model-in-output=
 # [optional] if an "A.I. Warning" disclaimer should be shown before every A.I. output; "true" or "false" (without the quotes):
 show-ai-warning-in-output=
 
+# [optional] port where ollama is running:
+ollama-port=
+
 # [optional] comma separated list of fallback models from ollama that should be used for long prompts,
 # e.g. if prompt is longer than the configured character limit (see below) or if all default models fail with a timeout:
 ollama-fallback-models=
@@ -61,6 +64,9 @@ ollama-cooldown-seconds=
 
 # [optional] prompt character limit, when fallback models should be used instead of the default models:
 ollama-default-model-prompt-character-limit=
+
+# [optional] prompt character limit; when reached, prompt will be truncated from the beginning; values <= 0 will be ignored:
+ollama-max-prompt-character-limit=
 
 # [optional] to mitigate prompt injection attacks you should choose a secret prompt marker (i.e. a random sequence of characters):
 ollama-secret-prompt-marker=

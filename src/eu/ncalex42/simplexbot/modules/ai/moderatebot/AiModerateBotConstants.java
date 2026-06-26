@@ -16,9 +16,11 @@ public class AiModerateBotConstants {
     static final String CONFIG_SLEEP_TIME_SECONDS = "sleep-time-seconds";
     static final String CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE = "number-of-messages-to-retrieve";
     static final String CONFIG_PERSIST_STATE = "persist-state";
+    static final String CONFIG_OLLAMA_PORT = "ollama-port";
     static final String CONFIG_OLLAMA_MODELS = "ollama-models";
     static final String CONFIG_OLLAMA_READ_TIMEOUT_MINUTES = "ollama-read-timeout-minutes";
     static final String CONFIG_OLLAMA_COOLDOWN_SECONDS = "ollama-cooldown-seconds";
+    static final String CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT = "ollama-max-prompt-character-limit";
     static final String CONFIG_OLLAMA_SECRET_PROMPT_MARKER = "ollama-secret-prompt-marker";
     static final String CONFIG_REPORT_TO_CONTACTS = "report-to-contacts";
     static final String CONFIG_REPORT_TO_GROUPS = "report-to-groups";

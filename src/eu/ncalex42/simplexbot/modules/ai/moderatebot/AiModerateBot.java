@@ -13,6 +13,7 @@ import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.ai.ollama.OllamaConnection;
+import eu.ncalex42.simplexbot.ai.ollama.OllamaConstants;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
@@ -37,9 +38,11 @@ public class AiModerateBot implements Runnable {
 
     private final List<Topic> topics;
 
+    private final String ollamaPort;
     private final List<String> ollamaModels;
     private final int ollamaReadTimeoutMinutes;
     private final int ollamaCooldownSeconds;
+    private final int maxPromptCharacterLimit;
 
     private final String secretPromptMarker;
     private final boolean persistState;
@@ -58,9 +61,11 @@ public class AiModerateBot implements Runnable {
         int[] hoursToRun = null;
         int sleepTimeInSeconds = -30;
         int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
+        String ollamaPort = "";
         final List<String> ollamaModels = new LinkedList<>();
         int ollamaReadTimeoutMinutes = -60;
         int ollamaCooldownSeconds = -1;
+        int maxPromptCharacterLimit = -1;
         String secretPromptMarker = "";
         String persistState = "";
         final List<String> contactsForReporting = new LinkedList<>();
@@ -144,6 +149,10 @@ public class AiModerateBot implements Runnable {
                 persistState = value;
                 break;
 
+            case AiModerateBotConstants.CONFIG_OLLAMA_PORT:
+                ollamaPort = value;
+                break;
+
             case AiModerateBotConstants.CONFIG_OLLAMA_MODELS:
                 final String[] models = value.split(",");
                 for (final String model : models) {
@@ -162,6 +171,12 @@ public class AiModerateBot implements Runnable {
             case AiModerateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS:
                 if (!value.isBlank()) {
                     ollamaCooldownSeconds = Integer.parseInt(value);
+                }
+                break;
+
+            case AiModerateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT:
+                if (!value.isBlank()) {
+                    maxPromptCharacterLimit = Integer.parseInt(value);
                 }
                 break;
 
@@ -246,7 +261,8 @@ public class AiModerateBot implements Runnable {
         if ((null == weekDaysToRun) || (null == hoursToRun) || (sleepTimeInSeconds < 0)
                 || (numberOfMessagesToRetrieve < 0)
                 || (!persistState.equalsIgnoreCase("true") && !persistState.equalsIgnoreCase("false"))
-                || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0) || secretPromptMarker.isBlank()) {
+                || (ollamaPort.isBlank()) || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0)
+                || (maxPromptCharacterLimit < 0) || secretPromptMarker.isBlank()) {
             Util.logWarning("[" + AiModerateBot.class.getSimpleName()
                     + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
@@ -254,15 +270,17 @@ public class AiModerateBot implements Runnable {
         SimplexConnection.initSimplexConnection(port);
         return new AiModerateBot(SimplexConnection.get(port), groupToProcess, groupContext, topicsList,
                 contactsForOutput, groupsForOutput, weekDaysToRun, hoursToRun, sleepTimeInSeconds,
-                numberOfMessagesToRetrieve, persistState, ollamaModels, ollamaReadTimeoutMinutes, ollamaCooldownSeconds,
-                secretPromptMarker, contactsForReporting, groupsForReporting);
+                numberOfMessagesToRetrieve, persistState, ollamaPort, ollamaModels, ollamaReadTimeoutMinutes,
+                ollamaCooldownSeconds, maxPromptCharacterLimit, secretPromptMarker, contactsForReporting,
+                groupsForReporting);
     }
 
     private AiModerateBot(SimplexConnection simplexConnection, String groupToProcess, String groupContext,
             List<Topic> topics, List<String> contactsForOutput, List<String> groupsForOutput, int[] weekdaysToRun,
             int[] hoursToRun, int sleepTimeInSeconds, int numberOfMessagesToRetrieve, String persistState,
-            List<String> ollamaModels, int ollamaReadTimeoutMinutes, int ollamaCooldownSeconds,
-            String secretPromptMarker, List<String> contactsForReporting, List<String> groupsForReporting) {
+            String ollamaPort, List<String> ollamaModels, int ollamaReadTimeoutMinutes, int ollamaCooldownSeconds,
+            int maxPromptCharacterLimit, String secretPromptMarker, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.groupContext = groupContext;
@@ -274,9 +292,11 @@ public class AiModerateBot implements Runnable {
         this.sleepTimeInSeconds = Math.abs(sleepTimeInSeconds);
         this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
         this.persistState = persistState.equalsIgnoreCase("true") ? true : false;
+        this.ollamaPort = ollamaPort.isBlank() ? OllamaConstants.OLLAMA_DEFAULT_PORT : ollamaPort;
         this.ollamaModels = ollamaModels;
         this.ollamaReadTimeoutMinutes = Math.abs(ollamaReadTimeoutMinutes);
         this.ollamaCooldownSeconds = Math.abs(ollamaCooldownSeconds);
+        this.maxPromptCharacterLimit = Math.max(maxPromptCharacterLimit, 0);
         this.secretPromptMarker = secretPromptMarker.isBlank() ? AiModerateBotConstants.DEFAULT_PROMPT_MARKER
                 : secretPromptMarker;
         this.contactsForReporting = contactsForReporting;
@@ -298,10 +318,12 @@ public class AiModerateBot implements Runnable {
                 + Util.intArrayToString(hoursToRun) + " *" + AiModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*="
                 + sleepTimeInSeconds + " *" + AiModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*="
                 + numberOfMessagesToRetrieve + " *" + AiModerateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState
-                + " *" + AiModerateBotConstants.CONFIG_OLLAMA_MODELS + "*=" + Util.listToString(ollamaModels) + " *"
+                + " *" + AiModerateBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
+                + AiModerateBotConstants.CONFIG_OLLAMA_MODELS + "*=" + Util.listToString(ollamaModels) + " *"
                 + AiModerateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
                 + AiModerateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
-                + AiModerateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*=" + secretPromptMarker + " *"
+                + AiModerateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "*=" + maxPromptCharacterLimit
+                + " *" + AiModerateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*=" + secretPromptMarker + " *"
                 + AiModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
                 + " *" + AiModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
                 simplexConnection, contactsForReporting, groupsForReporting);
@@ -379,9 +401,9 @@ public class AiModerateBot implements Runnable {
             final String prompt = generatePrompt(message.getText(), topic.getText());
 
             for (final String model : ollamaModels) {
-                final String aiResponse = OllamaConnection.generateResponse(model, systemPrompt, prompt,
-                        ollamaReadTimeoutMinutes * TimeUtil.MILLISECONDS_PER_MINUTE, simplexConnection,
-                        contactsForReporting, groupsForReporting);
+                final String aiResponse = OllamaConnection.generateResponse(ollamaPort, model, systemPrompt, prompt,
+                        maxPromptCharacterLimit, ollamaReadTimeoutMinutes * TimeUtil.MILLISECONDS_PER_MINUTE,
+                        simplexConnection, contactsForReporting, groupsForReporting);
 
                 // cooldown:
                 try {
