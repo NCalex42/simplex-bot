@@ -2,6 +2,7 @@ package eu.ncalex42.simplexbot.ai.ollama;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -17,8 +18,9 @@ import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 
 public class OllamaConnection {
 
-    public static String generateResponse(String model, String systemPrompt, String prompt, int readTimeoutMilliseconds,
-            SimplexConnection simplexConnection, List<String> contactsForReporting, List<String> groupsForReporting) {
+    public static String generateResponse(String ollamaPort, String model, String systemPrompt, String prompt,
+            int maxPromptCharacterLimit, int readTimeoutMilliseconds, SimplexConnection simplexConnection,
+            List<String> contactsForReporting, List<String> groupsForReporting) {
 
         if ((null == model) || model.isBlank()) {
             Util.logError("A.I. model is missing, ignoring request!", simplexConnection, contactsForReporting,
@@ -32,11 +34,15 @@ public class OllamaConnection {
             return null;
         }
 
+        final String effectivePrompt = truncatePrompt(prompt, maxPromptCharacterLimit, model, simplexConnection,
+                contactsForReporting, groupsForReporting);
+
         HttpURLConnection connection = null;
         try {
-            final JSONObject request = buildOllamaRequest(model, systemPrompt, prompt);
+            final JSONObject request = buildOllamaRequest(model, systemPrompt, effectivePrompt);
 
-            final URL url = new URI(OllamaConstants.OLLAMA_GENERATE_URL).toURL();
+            final URL url = new URI(OllamaConstants.OLLAMA_URL_PREFIX + ollamaPort + OllamaConstants.OLLAMA_URL_POSTFIX)
+                    .toURL();
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json; utf-8");
@@ -68,10 +74,13 @@ public class OllamaConnection {
             } else {
 
                 final StringBuilder errorBuilder = new StringBuilder();
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
-                    String line;
-                    while ((line = in.readLine()) != null) {
-                        errorBuilder.append(line);
+                final InputStream errorStream = connection.getErrorStream();
+                if (null != errorStream) {
+                    try (BufferedReader in = new BufferedReader(new InputStreamReader(errorStream))) {
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            errorBuilder.append(line);
+                        }
                     }
                 }
                 final String errorMessage = errorBuilder.toString();
@@ -79,8 +88,9 @@ public class OllamaConnection {
                 Util.logError(
                         "Ollama returned an error for model '" + model + "': [" + responseCode + " "
                                 + connection.getResponseMessage() + "] " + errorMessage + "\n\n*Prompt (length = "
-                                + prompt.length() + " characters) started with:*\n"
-                                + (prompt.length() <= 200 ? prompt : prompt.substring(0, 200) + " [...]"),
+                                + effectivePrompt.length() + " characters) started with:*\n"
+                                + (effectivePrompt.length() <= 200 ? effectivePrompt
+                                        : effectivePrompt.substring(0, 200) + " [...]"),
                         simplexConnection, contactsForReporting, groupsForReporting);
                 return null;
             }
@@ -100,8 +110,8 @@ public class OllamaConnection {
                 duration = "!1 " + durationInMinutes + "! minutes";
             }
 
-            Util.log(model + " response took " + duration + " for prompt with " + prompt.length() + " characters",
-                    simplexConnection, contactsForReporting, groupsForReporting);
+            Util.log(model + " response took " + duration + " for prompt with " + effectivePrompt.length()
+                    + " characters", simplexConnection, contactsForReporting, groupsForReporting);
 
             if (null != response) {
                 response = parseOllamaResponse(response);
@@ -112,9 +122,10 @@ public class OllamaConnection {
         } catch (final Exception ex) {
             Util.logError(
                     "Unexpected exception while communicating with ollama model '" + model + "': "
-                            + Util.getStackTraceAsString(ex) + "\n\n*Prompt (length = " + prompt.length()
+                            + Util.getStackTraceAsString(ex) + "\n\n*Prompt (length = " + effectivePrompt.length()
                             + " characters) started with:*\n"
-                            + (prompt.length() <= 100 ? prompt : prompt.substring(0, 100) + " [...]"),
+                            + (effectivePrompt.length() <= 100 ? effectivePrompt
+                                    : effectivePrompt.substring(0, 100) + " [...]"),
                     simplexConnection, contactsForReporting, groupsForReporting);
             return null;
 
@@ -123,6 +134,23 @@ public class OllamaConnection {
                 connection.disconnect();
             }
         }
+    }
+
+    private static String truncatePrompt(String prompt, int maxPromptCharacterLimit, String model,
+            SimplexConnection simplexConnection, List<String> contactsForReporting, List<String> groupsForReporting) {
+
+        final String trimMarker = "[...]";
+        String effectivePrompt = prompt;
+        if ((maxPromptCharacterLimit > trimMarker.length()) && (prompt.length() > maxPromptCharacterLimit)) {
+            effectivePrompt = trimMarker
+                    + prompt.substring((prompt.length() - maxPromptCharacterLimit) + trimMarker.length());
+
+            Util.logWarning(
+                    "Prompt truncated from " + prompt.length() + " to " + maxPromptCharacterLimit
+                            + " characters for model '" + model + "'!",
+                    simplexConnection, contactsForReporting, groupsForReporting);
+        }
+        return effectivePrompt;
     }
 
     private static JSONObject buildOllamaRequest(String model, String systemPrompt, String prompt) {

@@ -13,6 +13,7 @@ import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.ai.ollama.OllamaConnection;
+import eu.ncalex42.simplexbot.ai.ollama.OllamaConstants;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
 
@@ -33,9 +34,11 @@ public class TranslateBot implements Runnable {
     private final int sleepTimeInSeconds;
     private final int numberOfMessagesToRetrieve;
 
+    private final String ollamaPort;
     private final List<String> ollamaModels;
     private final int ollamaReadTimeoutMinutes;
     private final int ollamaCooldownSeconds;
+    private final int maxPromptCharacterLimit;
 
     private final String secretPromptMarker;
     private final String outputLanguage;
@@ -56,9 +59,11 @@ public class TranslateBot implements Runnable {
         int[] hoursToRun = null;
         int sleepTimeInSeconds = -30;
         int numberOfMessagesToRetrieve = Math.negateExact(GroupMessage.DEFAULT_NUMBER_OF_GROUPMESSAGES_TO_RETRIEVE);
+        String ollamaPort = "";
         final List<String> ollamaModels = new LinkedList<>();
         int ollamaReadTimeoutMinutes = -60;
         int ollamaCooldownSeconds = -1;
+        int maxPromptCharacterLimit = -1;
         String secretPromptMarker = "";
         String outputLanguage = "";
         String alwaysTranslate = "";
@@ -148,6 +153,10 @@ public class TranslateBot implements Runnable {
                 persistState = value;
                 break;
 
+            case TranslateBotConstants.CONFIG_OLLAMA_PORT:
+                ollamaPort = value;
+                break;
+
             case TranslateBotConstants.CONFIG_OLLAMA_MODELS:
                 final String[] models = value.split(",");
                 for (final String model : models) {
@@ -166,6 +175,12 @@ public class TranslateBot implements Runnable {
             case TranslateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS:
                 if (!value.isBlank()) {
                     ollamaCooldownSeconds = Integer.parseInt(value);
+                }
+                break;
+
+            case TranslateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT:
+                if (!value.isBlank()) {
+                    maxPromptCharacterLimit = Integer.parseInt(value);
                 }
                 break;
 
@@ -210,8 +225,8 @@ public class TranslateBot implements Runnable {
                 || (numberOfMessagesToRetrieve < 0)
                 || (!alwaysTranslate.equalsIgnoreCase("true") && !alwaysTranslate.equalsIgnoreCase("false"))
                 || (!persistState.equalsIgnoreCase("true") && !persistState.equalsIgnoreCase("false"))
-                || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0) || secretPromptMarker.isBlank()
-                || outputLanguage.isBlank()) {
+                || (ollamaPort.isBlank()) || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0)
+                || (maxPromptCharacterLimit < 0) || secretPromptMarker.isBlank() || outputLanguage.isBlank()) {
             Util.logWarning("[" + TranslateBot.class.getSimpleName()
                     + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
@@ -226,16 +241,17 @@ public class TranslateBot implements Runnable {
         SimplexConnection.initSimplexConnection(port);
         return new TranslateBot(SimplexConnection.get(port), groupToProcess, groupContext, contactsForOutput,
                 groupsForOutput, weekDaysToRun, hoursToRun, sleepTimeInSeconds, numberOfMessagesToRetrieve,
-                alwaysTranslate, persistState, ollamaModels, ollamaReadTimeoutMinutes, ollamaCooldownSeconds,
-                secretPromptMarker, outputLanguage, contactsForReporting, groupsForReporting);
+                alwaysTranslate, persistState, ollamaPort, ollamaModels, ollamaReadTimeoutMinutes,
+                ollamaCooldownSeconds, maxPromptCharacterLimit, secretPromptMarker, outputLanguage,
+                contactsForReporting, groupsForReporting);
     }
 
     private TranslateBot(SimplexConnection simplexConnection, String groupToProcess, String groupContext,
             List<String> contactsForOutput, List<String> groupsForOutput, int[] weekdaysToRun, int[] hoursToRun,
             int sleepTimeInSeconds, int numberOfMessagesToRetrieve, String alwaysTranslate, String persistState,
-            List<String> ollamaModels, int ollamaReadTimeoutMinutes, int ollamaCooldownSeconds,
-            String secretPromptMarker, String outputLanguage, List<String> contactsForReporting,
-            List<String> groupsForReporting) {
+            String ollamaPort, List<String> ollamaModels, int ollamaReadTimeoutMinutes, int ollamaCooldownSeconds,
+            int maxPromptCharacterLimit, String secretPromptMarker, String outputLanguage,
+            List<String> contactsForReporting, List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.groupContext = groupContext;
@@ -247,9 +263,11 @@ public class TranslateBot implements Runnable {
         this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
         this.alwaysTranslate = alwaysTranslate.equalsIgnoreCase("true") ? true : false;
         this.persistState = persistState.equalsIgnoreCase("true") ? true : false;
+        this.ollamaPort = ollamaPort.isBlank() ? OllamaConstants.OLLAMA_DEFAULT_PORT : ollamaPort;
         this.ollamaModels = ollamaModels;
         this.ollamaReadTimeoutMinutes = Math.abs(ollamaReadTimeoutMinutes);
         this.ollamaCooldownSeconds = Math.abs(ollamaCooldownSeconds);
+        this.maxPromptCharacterLimit = Math.max(maxPromptCharacterLimit, 0);
         this.secretPromptMarker = secretPromptMarker.isBlank() ? TranslateBotConstants.DEFAULT_PROMPT_MARKER
                 : secretPromptMarker;
         this.outputLanguage = outputLanguage.isBlank() ? TranslateBotConstants.DEFAULT_RESPONSE_LANGUAGE
@@ -274,9 +292,11 @@ public class TranslateBot implements Runnable {
                 + TranslateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
                 + TranslateBotConstants.CONFIG_ALWAYS_TRANSLATE + "*=" + alwaysTranslate + " *"
                 + TranslateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState + " *"
+                + TranslateBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
                 + TranslateBotConstants.CONFIG_OLLAMA_MODELS + "*=" + Util.listToString(ollamaModels) + " *"
                 + TranslateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
                 + TranslateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
+                + TranslateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "*=" + maxPromptCharacterLimit + " *"
                 + TranslateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*=" + secretPromptMarker + " *"
                 + TranslateBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "*=" + outputLanguage + " *"
                 + TranslateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
@@ -353,9 +373,9 @@ public class TranslateBot implements Runnable {
         final String systemPrompt = buildSystemPrompt();
 
         for (final String model : ollamaModels) {
-            final String aiResponse = OllamaConnection.generateResponse(model, systemPrompt, prompt,
-                    ollamaReadTimeoutMinutes * TimeUtil.MILLISECONDS_PER_MINUTE, simplexConnection,
-                    contactsForReporting, groupsForReporting);
+            final String aiResponse = OllamaConnection.generateResponse(ollamaPort, model, systemPrompt, prompt,
+                    maxPromptCharacterLimit, ollamaReadTimeoutMinutes * TimeUtil.MILLISECONDS_PER_MINUTE,
+                    simplexConnection, contactsForReporting, groupsForReporting);
 
             // cooldown:
             try {

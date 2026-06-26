@@ -13,6 +13,7 @@ import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.ai.ollama.OllamaConnection;
+import eu.ncalex42.simplexbot.ai.ollama.OllamaConstants;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
 import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
@@ -40,11 +41,13 @@ public class SummaryBot implements Runnable {
     private final boolean revealModelInOutput;
     private final boolean showAiWarningInOutput;
 
+    private final String ollamaPort;
     private final List<String> ollamaDefaultModels;
     private final List<String> ollamaFallbackModels;
     private final int ollamaReadTimeoutMinutes;
     private final int ollamaCooldownSeconds;
     private final int defaultModelPromptCharacterLimit;
+    private final int maxPromptCharacterLimit;
     private final String secretPromptMarker;
     private final String outputLanguage;
 
@@ -70,11 +73,13 @@ public class SummaryBot implements Runnable {
         int numberOfMessagesToRetrieve = -3000;
         String revealModelInOutput = "";
         String showAiWarningInOutput = "";
+        String ollamaPort = "";
         final List<String> ollamaDefaultModels = new LinkedList<>();
         final List<String> ollamaFallbackModels = new LinkedList<>();
         int ollamaReadTimeoutMinutes = -60;
         int ollamaCooldownSeconds = -1;
         int defaultModelPromptCharacterLimit = -1;
+        int maxPromptCharacterLimit = -1;
         String secretPromptMarker = "";
         String outputLanguage = "";
         final List<String> contactsForReporting = new LinkedList<>();
@@ -182,6 +187,10 @@ public class SummaryBot implements Runnable {
                 showAiWarningInOutput = value;
                 break;
 
+            case SummaryBotConstants.CONFIG_OLLAMA_PORT:
+                ollamaPort = value;
+                break;
+
             case SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODELS:
                 final String[] defaultModels = value.split(",");
                 for (final String model : defaultModels) {
@@ -215,6 +224,12 @@ public class SummaryBot implements Runnable {
             case SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODEL_PROMPT_CHARACTER_LIMIT:
                 if (!value.isBlank()) {
                     defaultModelPromptCharacterLimit = Integer.parseInt(value);
+                }
+                break;
+
+            case SummaryBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT:
+                if (!value.isBlank()) {
+                    maxPromptCharacterLimit = Integer.parseInt(value);
                 }
                 break;
 
@@ -259,8 +274,9 @@ public class SummaryBot implements Runnable {
                 || (null == hoursToRunWeekly) || (sleepTimeInMinutes < 0) || (numberOfMessagesToRetrieve < 0)
                 || (!revealModelInOutput.equalsIgnoreCase("true") && !revealModelInOutput.equalsIgnoreCase("false"))
                 || (!showAiWarningInOutput.equalsIgnoreCase("true") && !showAiWarningInOutput.equalsIgnoreCase("false"))
-                || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0)
-                || (defaultModelPromptCharacterLimit < 0) || secretPromptMarker.isBlank() || outputLanguage.isBlank()) {
+                || (ollamaPort.isBlank()) || (ollamaReadTimeoutMinutes < 0) || (ollamaCooldownSeconds < 0)
+                || (defaultModelPromptCharacterLimit < 0) || (maxPromptCharacterLimit < 0)
+                || secretPromptMarker.isBlank() || outputLanguage.isBlank()) {
             Util.logWarning("[" + SummaryBot.class.getSimpleName()
                     + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
         }
@@ -275,19 +291,20 @@ public class SummaryBot implements Runnable {
         SimplexConnection.initSimplexConnection(port);
         return new SummaryBot(SimplexConnection.get(port), groupToProcess, groupContext, contactsForOutput,
                 groupsForOutput, weekDaysToRunDaily, hoursToRunDaily, weekDaysToRunWeekly, hoursToRunWeekly,
-                sleepTimeInMinutes, numberOfMessagesToRetrieve, revealModelInOutput, showAiWarningInOutput,
+                sleepTimeInMinutes, numberOfMessagesToRetrieve, revealModelInOutput, showAiWarningInOutput, ollamaPort,
                 ollamaDefaultModels, ollamaFallbackModels, ollamaReadTimeoutMinutes, ollamaCooldownSeconds,
-                defaultModelPromptCharacterLimit, secretPromptMarker, outputLanguage, contactsForReporting,
-                groupsForReporting);
+                defaultModelPromptCharacterLimit, maxPromptCharacterLimit, secretPromptMarker, outputLanguage,
+                contactsForReporting, groupsForReporting);
     }
 
     private SummaryBot(SimplexConnection simplexConnection, String groupToProcess, String groupContext,
             List<String> contactsForOutput, List<String> groupsForOutput, int[] weekdaysToRunDaily,
             int[] hoursToRunDaily, int[] weekdaysToRunWeekly, int[] hoursToRunWeekly, int sleepTimeInMinutes,
-            int numberOfMessagesToRetrieve, String revealModelInOutput, String showAiWarningInOutput,
+            int numberOfMessagesToRetrieve, String revealModelInOutput, String showAiWarningInOutput, String ollamaPort,
             List<String> ollamaDefaultModels, List<String> ollamaFallbackModels, int ollamaReadTimeoutMinutes,
-            int ollamaCooldownSeconds, int defaultModelPromptCharacterLimit, String secretPromptMarker,
-            String outputLanguage, List<String> contactsForReporting, List<String> groupsForReporting) {
+            int ollamaCooldownSeconds, int defaultModelPromptCharacterLimit, int maxPromptCharacterLimit,
+            String secretPromptMarker, String outputLanguage, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.groupContext = groupContext;
@@ -301,11 +318,13 @@ public class SummaryBot implements Runnable {
         this.numberOfMessagesToRetrieve = Math.abs(numberOfMessagesToRetrieve);
         this.revealModelInOutput = revealModelInOutput.equalsIgnoreCase("false") ? false : true;
         this.showAiWarningInOutput = showAiWarningInOutput.equalsIgnoreCase("false") ? false : true;
+        this.ollamaPort = ollamaPort.isBlank() ? OllamaConstants.OLLAMA_DEFAULT_PORT : ollamaPort;
         this.ollamaDefaultModels = ollamaDefaultModels;
         this.ollamaFallbackModels = ollamaFallbackModels;
         this.ollamaReadTimeoutMinutes = Math.abs(ollamaReadTimeoutMinutes);
         this.ollamaCooldownSeconds = Math.abs(ollamaCooldownSeconds);
         this.defaultModelPromptCharacterLimit = Math.max(defaultModelPromptCharacterLimit, 0);
+        this.maxPromptCharacterLimit = Math.max(maxPromptCharacterLimit, 0);
         this.secretPromptMarker = secretPromptMarker.isBlank() ? SummaryBotConstants.DEFAULT_PROMPT_MARKER
                 : secretPromptMarker;
         this.outputLanguage = outputLanguage.isBlank() ? SummaryBotConstants.DEFAULT_RESPONSE_LANGUAGE : outputLanguage;
@@ -331,17 +350,19 @@ public class SummaryBot implements Runnable {
                 + SummaryBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
                 + SummaryBotConstants.CONFIG_REVEAL_MODEL_IN_OUTPUT + "*=" + revealModelInOutput + " *"
                 + SummaryBotConstants.CONFIG_SHOW_AI_WARNING_IN_OUTPUT + "*=" + showAiWarningInOutput + " *"
+                + SummaryBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
                 + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODELS + "*=" + Util.listToString(ollamaDefaultModels)
                 + " *" + SummaryBotConstants.CONFIG_OLLAMA_FALLBACK_MODELS + "*="
                 + Util.listToString(ollamaFallbackModels) + " *"
                 + SummaryBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
                 + SummaryBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
                 + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODEL_PROMPT_CHARACTER_LIMIT + "*="
-                + defaultModelPromptCharacterLimit + " *" + SummaryBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER
-                + "*=" + secretPromptMarker + " *" + SummaryBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "*="
-                + outputLanguage + " *" + SummaryBotConstants.CONFIG_REPORT_TO_CONTACTS + "*="
-                + Util.listToString(contactsForReporting) + " *" + SummaryBotConstants.CONFIG_REPORT_TO_GROUPS + "*="
-                + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting, groupsForReporting);
+                + defaultModelPromptCharacterLimit + " *" + SummaryBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT
+                + "*=" + maxPromptCharacterLimit + " *" + SummaryBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*="
+                + secretPromptMarker + " *" + SummaryBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "*=" + outputLanguage
+                + " *" + SummaryBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
+                + " *" + SummaryBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
+                simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
             while (true) {
@@ -492,8 +513,8 @@ public class SummaryBot implements Runnable {
     private boolean generateAiSummaryWithOllama(final String model, final String prompt, String timeframe,
             String timestamp) {
 
-        final String aiResponse = OllamaConnection.generateResponse(model,
-                buildSystemPrompt() + "\n\n" + secretPromptMarker, prompt,
+        final String aiResponse = OllamaConnection.generateResponse(ollamaPort, model,
+                buildSystemPrompt() + "\n\n" + secretPromptMarker, prompt, maxPromptCharacterLimit,
                 ollamaReadTimeoutMinutes * TimeUtil.MILLISECONDS_PER_MINUTE, simplexConnection, contactsForReporting,
                 groupsForReporting);
 

@@ -41,11 +41,17 @@ always-translate=
 # [optional] if already processed message IDs should be stored on disk, to continue after a restart; "true" or "false" (without the quotes):
 persist-state=
 
+# [optional] port where ollama is running:
+ollama-port=
+
 # [optional] timeout for A.I. response (in minutes):
 ollama-read-timeout-minutes=
 
 # [optional] cooldown time after each model (in seconds):
 ollama-cooldown-seconds=
+
+# [optional] prompt character limit; when reached, prompt will be truncated from the beginning; values <= 0 will be ignored:
+ollama-max-prompt-character-limit=
 
 # [optional] to mitigate prompt injection attacks you should choose a secret prompt marker (i.e. a random sequence of characters):
 ollama-secret-prompt-marker=

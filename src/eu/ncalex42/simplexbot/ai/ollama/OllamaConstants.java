@@ -2,7 +2,9 @@ package eu.ncalex42.simplexbot.ai.ollama;
 
 public class OllamaConstants {
 
-    static final String OLLAMA_GENERATE_URL = "http://localhost:11434/api/generate";
+    static final String OLLAMA_URL_PREFIX = "http://localhost:";
+    public static final String OLLAMA_DEFAULT_PORT = "11434";
+    static final String OLLAMA_URL_POSTFIX = "/api/generate";
 
     static final String MODEL_KEY = "model";
     static final String SYSTEM_KEY = "system";

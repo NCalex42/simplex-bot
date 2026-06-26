@@ -46,8 +46,8 @@ Note: The `bot-config` folder must be located in your current working directory,
 
 
 ## What else?
-- requires SimpleX cli-version (tested with 6.4.8)
+- requires SimpleX cli-version (tested with 6.5.6)
 - requires Java >= 11
-- for A.I. modules: requires local Ollama (tested with 0.13.5)
+- for A.I. modules: requires local Ollama (tested with 0.30.10)
 - for developers: requires `org.json`
 

@@ -16,9 +16,11 @@ public class TranslateBotConstants {
     static final String CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE = "number-of-messages-to-retrieve";
     static final String CONFIG_ALWAYS_TRANSLATE = "always-translate";
     static final String CONFIG_PERSIST_STATE = "persist-state";
+    static final String CONFIG_OLLAMA_PORT = "ollama-port";
     static final String CONFIG_OLLAMA_MODELS = "ollama-models";
     static final String CONFIG_OLLAMA_READ_TIMEOUT_MINUTES = "ollama-read-timeout-minutes";
     static final String CONFIG_OLLAMA_COOLDOWN_SECONDS = "ollama-cooldown-seconds";
+    static final String CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT = "ollama-max-prompt-character-limit";
     static final String CONFIG_OLLAMA_SECRET_PROMPT_MARKER = "ollama-secret-prompt-marker";
     static final String CONFIG_OLLAMA_OUTPUT_LANGUAGE = "ollama-output-language";
     static final String CONFIG_REPORT_TO_CONTACTS = "report-to-contacts";
