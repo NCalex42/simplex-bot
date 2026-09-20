@@ -8,6 +8,8 @@ public class MessageQuotaBotConstants {
     static final String CONFIG_GROUP = "group";
     static final String CONFIG_MESSAGE_QUOTA_PER_HOUR = "message-quota-per-hour";
     static final String CONFIG_MESSAGE_QUOTA_PER_DAY = "message-quota-per-day";
+    static final String CONFIG_MEDIA_QUOTA_PER_HOUR = "media-quota-per-hour";
+    static final String CONFIG_MEDIA_QUOTA_PER_DAY = "media-quota-per-day";
     static final String CONFIG_SPAM_QUOTA_PER_HOUR = "spam-quota-per-hour";
     static final String CONFIG_SPAM_QUOTA_PER_DAY = "spam-quota-per-day";
     static final String CONFIG_OUTPUT_CONTACTS = "output-contacts";

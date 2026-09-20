@@ -16,6 +16,7 @@ import eu.ncalex42.simplexbot.Start;
 import eu.ncalex42.simplexbot.TimeUtil;
 import eu.ncalex42.simplexbot.Util;
 import eu.ncalex42.simplexbot.simplex.SimplexConnection;
+import eu.ncalex42.simplexbot.simplex.SimplexConstants;
 import eu.ncalex42.simplexbot.simplex.model.GroupMember;
 import eu.ncalex42.simplexbot.simplex.model.GroupMessage;
 
@@ -32,6 +33,8 @@ public class MessageQuotaBot implements Runnable {
 
     private final int messageQuotaPerHour;
     private final int messageQuotaPerDay;
+    private final int mediaQuotaPerHour;
+    private final int mediaQuotaPerDay;
     private final int spamQuotaPerHour;
     private final int spamQuotaPerDay;
     private final Map<GroupMember, List<GroupMessage>> quotaRecord = new HashMap<>();
@@ -51,6 +54,8 @@ public class MessageQuotaBot implements Runnable {
         int messageQuotaPerDay = -1;
         int spamQuotaPerHour = -1;
         int spamQuotaPerDay = -1;
+        int mediaQuotaPerHour = -1;
+        int mediaQuotaPerDay = -1;
         final List<String> contactsForOutput = new LinkedList<>();
         final List<String> groupsForOutput = new LinkedList<>();
         int sleepTimeInSeconds = -30;
@@ -93,6 +98,18 @@ public class MessageQuotaBot implements Runnable {
 
             case MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY:
                 spamQuotaPerDay = Integer.parseInt(value);
+                break;
+
+            case MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_HOUR:
+                if (!value.isBlank()) {
+                    mediaQuotaPerHour = Integer.parseInt(value);
+                }
+                break;
+
+            case MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_DAY:
+                if (!value.isBlank()) {
+                    mediaQuotaPerDay = Integer.parseInt(value);
+                }
                 break;
 
             case MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS:
@@ -162,7 +179,8 @@ public class MessageQuotaBot implements Runnable {
                     + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "'");
         }
 
-        if ((sleepTimeInSeconds < 0) || (!silentmode.equalsIgnoreCase("true") && !silentmode.equalsIgnoreCase("false"))
+        if ((mediaQuotaPerHour < 0) || (mediaQuotaPerDay < 0) || (sleepTimeInSeconds < 0)
+                || (!silentmode.equalsIgnoreCase("true") && !silentmode.equalsIgnoreCase("false"))
                 || (numberOfMessagesToRetrieve < 0)) {
             Util.logWarning("[" + MessageQuotaBot.class.getSimpleName()
                     + "] Some config properties are missing or are invalid, using defaults!", null, null, null);
@@ -170,18 +188,22 @@ public class MessageQuotaBot implements Runnable {
 
         SimplexConnection.initSimplexConnection(port);
         return new MessageQuotaBot(SimplexConnection.get(port), groupToProcess, messageQuotaPerHour, messageQuotaPerDay,
-                spamQuotaPerHour, spamQuotaPerDay, contactsForOutput, groupsForOutput, sleepTimeInSeconds, silentmode,
-                numberOfMessagesToRetrieve, contactsForReporting, groupsForReporting);
+                mediaQuotaPerHour, mediaQuotaPerDay, spamQuotaPerHour, spamQuotaPerDay, contactsForOutput,
+                groupsForOutput, sleepTimeInSeconds, silentmode, numberOfMessagesToRetrieve, contactsForReporting,
+                groupsForReporting);
     }
 
     private MessageQuotaBot(SimplexConnection simplexConnection, String groupToProcess, int messageQuotaPerHour,
-            int messageQuotaPerDay, int spamQuotaPerHour, int spamQuotaPerDay, List<String> contactsForOutput,
-            List<String> groupsForOutput, int sleepTimeInSeconds, String silentMode, int numberOfMessagesToRetrieve,
-            List<String> contactsForReporting, List<String> groupsForReporting) {
+            int messageQuotaPerDay, int mediaQuotaPerHour, int mediaQuotaPerDay, int spamQuotaPerHour,
+            int spamQuotaPerDay, List<String> contactsForOutput, List<String> groupsForOutput, int sleepTimeInSeconds,
+            String silentMode, int numberOfMessagesToRetrieve, List<String> contactsForReporting,
+            List<String> groupsForReporting) {
         this.simplexConnection = simplexConnection;
         this.groupToProcess = groupToProcess;
         this.messageQuotaPerHour = messageQuotaPerHour;
         this.messageQuotaPerDay = messageQuotaPerDay;
+        this.mediaQuotaPerHour = mediaQuotaPerHour < 0 ? Integer.MAX_VALUE : mediaQuotaPerHour;
+        this.mediaQuotaPerDay = mediaQuotaPerDay < 0 ? Integer.MAX_VALUE : mediaQuotaPerDay;
         this.spamQuotaPerHour = spamQuotaPerHour;
         this.spamQuotaPerDay = spamQuotaPerDay;
         this.contactsForOutput = contactsForOutput;
@@ -201,6 +223,10 @@ public class MessageQuotaBot implements Runnable {
                 + MessageQuotaBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
                 + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "*=" + messageQuotaPerHour + " *"
                 + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "*=" + messageQuotaPerDay + " *"
+                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_HOUR + "*="
+                + (Integer.MAX_VALUE == mediaQuotaPerHour ? "n/a" : mediaQuotaPerHour) + " *"
+                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_DAY + "*="
+                + (Integer.MAX_VALUE == mediaQuotaPerDay ? "n/a" : mediaQuotaPerDay) + " *"
                 + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "*=" + spamQuotaPerHour + " *"
                 + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "*=" + spamQuotaPerDay + " *"
                 + MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
@@ -274,9 +300,11 @@ public class MessageQuotaBot implements Runnable {
 
             final List<GroupMessage> messageListOfMember = quotaRecord.get(member);
             final List<Integer> itemsToDelete = new LinkedList<>();
+            final long nowInSeconds = TimeUtil.getUtcSeconds();
             int messageCountWithinHour = 0;
             int messageCountWithinDay = 0;
-            final long nowInSeconds = TimeUtil.getUtcSeconds();
+            int mediaCountWithinHour = 0;
+            int mediaCountWithinDay = 0;
             final Map<String, Integer> spamCountWithinHourMap = new HashMap<>();
             final Map<String, Integer> spamCountWithinDayMap = new HashMap<>();
 
@@ -284,6 +312,7 @@ public class MessageQuotaBot implements Runnable {
 
                 final String messageText = messageListOfMember.get(i).getText();
                 final String timestamp = messageListOfMember.get(i).getItemTs();
+                final String messageType = messageListOfMember.get(i).getType();
                 final long tsInSeconds = TimeUtil.timestampToUtcSeconds(timestamp);
                 final long distanceToNow = nowInSeconds - tsInSeconds;
                 if (distanceToNow < 0) {
@@ -294,19 +323,35 @@ public class MessageQuotaBot implements Runnable {
                 }
 
                 if (distanceToNow < TimeUtil.SECONDS_PER_HOUR) {
+
                     messageCountWithinHour++;
+
+                    mediaCountWithinHour = increaseMediaCounter(messageType, mediaCountWithinHour);
+
                     increaseSpamCounter(messageText, spamCountWithinHourMap);
                 }
 
                 if (distanceToNow < TimeUtil.SECONDS_PER_DAY) {
+
                     messageCountWithinDay++;
+
+                    mediaCountWithinDay = increaseMediaCounter(messageType, mediaCountWithinDay);
+
                     increaseSpamCounter(messageText, spamCountWithinDayMap);
                 } else {
                     itemsToDelete.add(i);
                 }
             }
 
-            // check spam count:
+            // check message quota:
+            final boolean messageQuotaReached = (messageCountWithinHour > messageQuotaPerHour)
+                    || (messageCountWithinDay > messageQuotaPerDay);
+
+            // check media quota:
+            final boolean mediaQuotaReached = (mediaCountWithinHour > mediaQuotaPerHour)
+                    || (mediaCountWithinDay > mediaQuotaPerDay);
+
+            // check spam quota:
             int maxSpamCountWithinHour = 0;
             for (final Integer spamCount : spamCountWithinHourMap.values()) {
                 maxSpamCountWithinHour = (spamCount > maxSpamCountWithinHour) ? spamCount : maxSpamCountWithinHour;
@@ -315,22 +360,22 @@ public class MessageQuotaBot implements Runnable {
             for (final Integer spamCount : spamCountWithinDayMap.values()) {
                 maxSpamCountWithinDay = (spamCount > maxSpamCountWithinDay) ? spamCount : maxSpamCountWithinDay;
             }
-            final boolean spam = (maxSpamCountWithinHour > spamQuotaPerHour)
+            final boolean spamQuotaReached = (maxSpamCountWithinHour > spamQuotaPerHour)
                     || (maxSpamCountWithinDay > spamQuotaPerDay);
 
-            // check quota:
-            if ((messageCountWithinHour > messageQuotaPerHour) || (messageCountWithinDay > messageQuotaPerDay)
-                    || spam) {
+            if (messageQuotaReached || mediaQuotaReached || spamQuotaReached) {
                 if (member.isPresent() && !member.hasPrivileges()) {
                     if (!GroupMember.ROLE_OBSERVER.equals(member.getRole())) {
-                        downgradeMember(member, messageCountWithinHour, messageCountWithinDay, maxSpamCountWithinHour,
-                                maxSpamCountWithinDay, spam);
+                        downgradeMember(member, messageCountWithinHour, messageCountWithinDay, mediaCountWithinHour,
+                                mediaCountWithinDay, maxSpamCountWithinHour, maxSpamCountWithinDay, spamQuotaReached,
+                                mediaQuotaReached);
                     } else {
                         Util.logWarning(
                                 "Member *'" + member.getDisplayName() + "'* [" + member.getLocalName() + "] in group *'"
                                         + groupToProcess + "'* is already downgraded: messageCountWithinHour="
                                         + messageCountWithinHour + " messageCountWithinDay=" + messageCountWithinDay
-                                        + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
+                                        + " mediaCountWithinHour=" + mediaCountWithinHour + " mediaCountWithinDay="
+                                        + mediaCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
                                         + " maxSpamCountWithinDay=" + maxSpamCountWithinDay,
                                 simplexConnection, contactsForReporting, groupsForReporting);
                     }
@@ -357,6 +402,20 @@ public class MessageQuotaBot implements Runnable {
         }
     }
 
+    private int increaseMediaCounter(String messageType, int mediaCounter) {
+
+        if (SimplexConstants.VALUE_MSG_CONTENT_TYPE_IMAGE.equalsIgnoreCase(messageType)
+                || SimplexConstants.VALUE_MSG_CONTENT_TYPE_VIDEO.equalsIgnoreCase(messageType)
+                || SimplexConstants.VALUE_MSG_CONTENT_TYPE_FILE.equalsIgnoreCase(messageType)
+                || SimplexConstants.VALUE_MSG_CONTENT_TYPE_LINK.equalsIgnoreCase(messageType)
+                || SimplexConstants.VALUE_MSG_CONTENT_TYPE_VOICE.equalsIgnoreCase(messageType)) {
+
+            return ++mediaCounter;
+        }
+
+        return mediaCounter;
+    }
+
     private void increaseSpamCounter(String messageText, Map<String, Integer> spamCountMap) {
 
         if ((null == messageText) || messageText.isEmpty()) {
@@ -371,13 +430,15 @@ public class MessageQuotaBot implements Runnable {
     }
 
     private void downgradeMember(GroupMember member, int messageCountWithinHour, int messageCountWithinDay,
-            int maxSpamCountWithinHour, int maxSpamCountWithinDay, boolean spam) {
+            int mediaCountWithinHour, int mediaCountWithinDay, int maxSpamCountWithinHour, int maxSpamCountWithinDay,
+            boolean spamQuotaReached, boolean mediaQuotaReached) {
 
         final String downgradeMessage = "!6 Downgrading! member *'" + member.getDisplayName() + "'* ["
                 + member.getLocalName() + "] in group *'" + groupToProcess
                 + "'* to *OBSERVER* : messageCountWithinHour=" + messageCountWithinHour + " messageCountWithinDay="
-                + messageCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
-                + " maxSpamCountWithinDay=" + maxSpamCountWithinDay;
+                + messageCountWithinDay + " mediaCountWithinHour=" + mediaCountWithinHour + " mediaCountWithinDay="
+                + mediaCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour + " maxSpamCountWithinDay="
+                + maxSpamCountWithinDay;
         Util.log(downgradeMessage, simplexConnection, contactsForReporting, groupsForReporting);
         Util.outputToContactsAndGroups(downgradeMessage, simplexConnection, contactsForOutput, groupsForOutput,
                 contactsForReporting, groupsForReporting);
@@ -388,7 +449,15 @@ public class MessageQuotaBot implements Runnable {
         }
 
         if (!silentMode) {
-            final String reason = spam ? "Spam detected" : "Message quota reached";
+            final String reason;
+            if (spamQuotaReached) {
+                reason = "Spam detected";
+            } else if (mediaQuotaReached) {
+                reason = "Media quota reached";
+            } else {
+                reason = "Message quota reached";
+            }
+
             simplexConnection.sendToGroup(groupToProcess,
                     "!1 " + reason + "! by member '" + member.getDisplayName() + "' => downgrading to 'observer'!",
                     contactsForReporting, groupsForReporting);
