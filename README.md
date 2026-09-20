@@ -17,6 +17,7 @@ It currently contains modules for moderating public groups and processing groups
 - can downgrade group members to 'observer' if they exceed their message quota
 - there can be a message quota per hour and per day
 - there can also be a spam quota (i.e. number of identical text messages) per hour and per day
+- there can also be a media quota (i.e. image, video, file, link, voice) per hour and per day
 
 #### summary-bot:
 - needs local Ollama LLM

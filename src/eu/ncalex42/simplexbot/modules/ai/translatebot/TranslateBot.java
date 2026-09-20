@@ -396,8 +396,7 @@ public class TranslateBot implements Runnable {
             }
 
             simplexConnection.sendToContactsAndGroups(
-                    "*[" + message.getItemTs() + "]*   _" + message.getMember().getDisplayName() + "_ :\n\n"
-                            + sanitizedResponse,
+                    "*[" + message.getItemTs() + "]*   " + formatName(message) + " :\n\n" + sanitizedResponse,
                     contactsForOutput, groupsForOutput, contactsForReporting, groupsForReporting);
         }
     }
@@ -433,6 +432,22 @@ public class TranslateBot implements Runnable {
         sanitizedAiResponse = sanitizedAiResponse.equals("<empty/nothing>") ? "" : sanitizedAiResponse;
         sanitizedAiResponse = sanitizedAiResponse.equals("<translated text>") ? "" : sanitizedAiResponse;
         return sanitizedAiResponse;
+    }
+
+    private String formatName(GroupMessage message) {
+
+        final String name = message.getMember().getDisplayName();
+
+        if (null == name) {
+            return "<null>";
+        }
+        if (name.isBlank()) {
+            return "";
+        }
+        if (!name.contains("_")) {
+            return "_" + name + "_";
+        }
+        return name;
     }
 
     private boolean shouldRun() {

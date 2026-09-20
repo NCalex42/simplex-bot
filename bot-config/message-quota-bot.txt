@@ -20,6 +20,12 @@ spam-quota-per-day=
 
 
 
+# [optional] media quota per hour (i.e. image, video, file, link, voice):
+media-quota-per-hour=
+
+# [optional] media quota per day (i.e. image, video, file, link, voice):
+media-quota-per-day=
+
 # [optional] comma separated list of contacts to send the result to:
 output-contacts=
 
