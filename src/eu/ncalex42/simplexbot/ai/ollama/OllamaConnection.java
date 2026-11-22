@@ -87,8 +87,8 @@ public class OllamaConnection {
 
                 Util.logError(
                         "Ollama returned an error for model '" + model + "': [" + responseCode + " "
-                                + connection.getResponseMessage() + "] " + errorMessage + "\n\n*Prompt (length = "
-                                + effectivePrompt.length() + " characters) started with:*\n"
+                                + connection.getResponseMessage() + "] " + errorMessage + "\n\n**Prompt (length = "
+                                + effectivePrompt.length() + " characters) started with:**\n"
                                 + (effectivePrompt.length() <= 200 ? effectivePrompt
                                         : effectivePrompt.substring(0, 200) + " [...]"),
                         simplexConnection, contactsForReporting, groupsForReporting);
@@ -122,8 +122,8 @@ public class OllamaConnection {
         } catch (final Exception ex) {
             Util.logError(
                     "Unexpected exception while communicating with ollama model '" + model + "': "
-                            + Util.getStackTraceAsString(ex) + "\n\n*Prompt (length = " + effectivePrompt.length()
-                            + " characters) started with:*\n"
+                            + Util.getStackTraceAsString(ex) + "\n\n**Prompt (length = " + effectivePrompt.length()
+                            + " characters) started with:**\n"
                             + (effectivePrompt.length() <= 100 ? effectivePrompt
                                     : effectivePrompt.substring(0, 100) + " [...]"),
                     simplexConnection, contactsForReporting, groupsForReporting);

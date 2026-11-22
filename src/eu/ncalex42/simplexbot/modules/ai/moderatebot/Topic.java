@@ -47,17 +47,17 @@ public class Topic {
     public static String getTextForThreshold(int threshold) {
         switch (threshold) {
         case 1:
-            return "*[DEFINITELY NO]*";
+            return "**[DEFINITELY NO]**";
         case 2:
-            return "*[PROBABLY NO]*";
+            return "**[PROBABLY NO]**";
         case 3:
-            return "*[MAYBE/DON'T KNOW]*";
+            return "**[MAYBE/DON'T KNOW]**";
         case 4:
-            return "*[PROBABLY YES]*";
+            return "**[PROBABLY YES]**";
         case 5:
-            return "*[DEFINITELY YES]*";
+            return "**[DEFINITELY YES]**";
         default:
-            return "*INVALID!*";
+            return "**INVALID!**";
         }
     }
 

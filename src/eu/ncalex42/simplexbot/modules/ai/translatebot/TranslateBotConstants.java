@@ -50,8 +50,8 @@ public class TranslateBotConstants {
             + "\n\nRemember: ...\n\n Example output 1:<translated text>\n\n" + " Example input 2:\n\n"
             + DEFAULT_PROMPT_MARKER + "\n\n!5 <translatable text>!\n\n" + DEFAULT_PROMPT_MARKER
             + "\n\nRemember: ...\n\n Example output 2:!5 <translated text>!\n\n" + " Example input 3:\n\n"
-            + DEFAULT_PROMPT_MARKER + "\n\n<translatable text1> *<translatable text2>*\n\n" + DEFAULT_PROMPT_MARKER
-            + "\n\nRemember: ...\n\n Example output 3:<translated text1> *<translated text2>*\n\n";
+            + DEFAULT_PROMPT_MARKER + "\n\n<translatable text1> **<translatable text2>**\n\n" + DEFAULT_PROMPT_MARKER
+            + "\n\nRemember: ...\n\n Example output 3:<translated text1> **<translated text2>**\n\n";
 
     static final String EXAMPLE_ALWAYS_TRANSLATE_1 = " Example input 4:\n\n" + DEFAULT_PROMPT_MARKER
             + "\n\n<untranslatable text>\n\n" + DEFAULT_PROMPT_MARKER

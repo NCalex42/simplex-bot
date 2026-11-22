@@ -218,25 +218,25 @@ public class MessageQuotaBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(MessageQuotaBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + MessageQuotaBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + MessageQuotaBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "*=" + messageQuotaPerHour + " *"
-                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "*=" + messageQuotaPerDay + " *"
-                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_HOUR + "*="
-                + (Integer.MAX_VALUE == mediaQuotaPerHour ? "n/a" : mediaQuotaPerHour) + " *"
-                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_DAY + "*="
-                + (Integer.MAX_VALUE == mediaQuotaPerDay ? "n/a" : mediaQuotaPerDay) + " *"
-                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "*=" + spamQuotaPerHour + " *"
-                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "*=" + spamQuotaPerDay + " *"
-                + MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
-                + MessageQuotaBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
-                + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
-                + MessageQuotaBotConstants.CONFIG_SILENTMODE + "*=" + silentMode + " *"
-                + MessageQuotaBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve
-                + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "*="
-                + Util.listToString(contactsForReporting) + " *" + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS
-                + "*=" + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting,
+        Util.log(MessageQuotaBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + MessageQuotaBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + MessageQuotaBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_HOUR + "**=" + messageQuotaPerHour + " **"
+                + MessageQuotaBotConstants.CONFIG_MESSAGE_QUOTA_PER_DAY + "**=" + messageQuotaPerDay + " **"
+                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_HOUR + "**="
+                + (Integer.MAX_VALUE == mediaQuotaPerHour ? "n/a" : mediaQuotaPerHour) + " **"
+                + MessageQuotaBotConstants.CONFIG_MEDIA_QUOTA_PER_DAY + "**="
+                + (Integer.MAX_VALUE == mediaQuotaPerDay ? "n/a" : mediaQuotaPerDay) + " **"
+                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_HOUR + "**=" + spamQuotaPerHour + " **"
+                + MessageQuotaBotConstants.CONFIG_SPAM_QUOTA_PER_DAY + "**=" + spamQuotaPerDay + " **"
+                + MessageQuotaBotConstants.CONFIG_OUTPUT_CONTACTS + "**=" + Util.listToString(contactsForOutput) + " **"
+                + MessageQuotaBotConstants.CONFIG_OUTPUT_GROUPS + "**=" + Util.listToString(groupsForOutput) + " **"
+                + MessageQuotaBotConstants.CONFIG_SLEEP_TIME_SECONDS + "**=" + sleepTimeInSeconds + " **"
+                + MessageQuotaBotConstants.CONFIG_SILENTMODE + "**=" + silentMode + " **"
+                + MessageQuotaBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "**=" + numberOfMessagesToRetrieve
+                + " **" + MessageQuotaBotConstants.CONFIG_REPORT_TO_CONTACTS + "**="
+                + Util.listToString(contactsForReporting) + " **" + MessageQuotaBotConstants.CONFIG_REPORT_TO_GROUPS
+                + "**=" + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting,
                 groupsForReporting);
 
         final List<GroupMessage> alreadyProcessedMessages = new LinkedList<>();
@@ -371,11 +371,12 @@ public class MessageQuotaBot implements Runnable {
                                 mediaQuotaReached);
                     } else {
                         Util.logWarning(
-                                "Member *'" + member.getDisplayName() + "'* [" + member.getLocalName() + "] in group *'"
-                                        + groupToProcess + "'* is already downgraded: messageCountWithinHour="
-                                        + messageCountWithinHour + " messageCountWithinDay=" + messageCountWithinDay
-                                        + " mediaCountWithinHour=" + mediaCountWithinHour + " mediaCountWithinDay="
-                                        + mediaCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
+                                "Member **'" + member.getDisplayName() + "'** [" + member.getLocalName()
+                                        + "] in group **'" + groupToProcess
+                                        + "'** is already downgraded: messageCountWithinHour=" + messageCountWithinHour
+                                        + " messageCountWithinDay=" + messageCountWithinDay + " mediaCountWithinHour="
+                                        + mediaCountWithinHour + " mediaCountWithinDay=" + mediaCountWithinDay
+                                        + " maxSpamCountWithinHour=" + maxSpamCountWithinHour
                                         + " maxSpamCountWithinDay=" + maxSpamCountWithinDay,
                                 simplexConnection, contactsForReporting, groupsForReporting);
                     }
@@ -433,9 +434,9 @@ public class MessageQuotaBot implements Runnable {
             int mediaCountWithinHour, int mediaCountWithinDay, int maxSpamCountWithinHour, int maxSpamCountWithinDay,
             boolean spamQuotaReached, boolean mediaQuotaReached) {
 
-        final String downgradeMessage = "!6 Downgrading! member *'" + member.getDisplayName() + "'* ["
-                + member.getLocalName() + "] in group *'" + groupToProcess
-                + "'* to *OBSERVER* : messageCountWithinHour=" + messageCountWithinHour + " messageCountWithinDay="
+        final String downgradeMessage = "!6 Downgrading! member **'" + member.getDisplayName() + "'** ["
+                + member.getLocalName() + "] in group **'" + groupToProcess
+                + "'** to **OBSERVER** : messageCountWithinHour=" + messageCountWithinHour + " messageCountWithinDay="
                 + messageCountWithinDay + " mediaCountWithinHour=" + mediaCountWithinHour + " mediaCountWithinDay="
                 + mediaCountWithinDay + " maxSpamCountWithinHour=" + maxSpamCountWithinHour + " maxSpamCountWithinDay="
                 + maxSpamCountWithinDay;

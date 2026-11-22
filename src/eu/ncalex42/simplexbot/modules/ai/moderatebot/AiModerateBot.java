@@ -306,27 +306,27 @@ public class AiModerateBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(AiModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + AiModerateBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + AiModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + AiModerateBotConstants.CONFIG_GROUP_CONTEXT + "*='"
-                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' *"
-                + "TOPICS*=" + Util.listToString(topics) + " *" + AiModerateBotConstants.CONFIG_OUTPUT_CONTACTS + "*="
-                + Util.listToString(contactsForOutput) + " *" + AiModerateBotConstants.CONFIG_OUTPUT_GROUPS + "*="
-                + Util.listToString(groupsForOutput) + " *" + AiModerateBotConstants.CONFIG_WEEKDAYS + "*="
-                + Util.intArrayToString(weekdaysToRun) + " *" + AiModerateBotConstants.CONFIG_HOURS + "*="
-                + Util.intArrayToString(hoursToRun) + " *" + AiModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*="
-                + sleepTimeInSeconds + " *" + AiModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*="
-                + numberOfMessagesToRetrieve + " *" + AiModerateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState
-                + " *" + AiModerateBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
-                + AiModerateBotConstants.CONFIG_OLLAMA_MODELS + "*=" + Util.listToString(ollamaModels) + " *"
-                + AiModerateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
-                + AiModerateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
-                + AiModerateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "*=" + maxPromptCharacterLimit
-                + " *" + AiModerateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*=" + secretPromptMarker + " *"
-                + AiModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
-                + " *" + AiModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
-                simplexConnection, contactsForReporting, groupsForReporting);
+        Util.log(AiModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + AiModerateBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + AiModerateBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + AiModerateBotConstants.CONFIG_GROUP_CONTEXT + "**='"
+                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' **"
+                + "TOPICS**=" + Util.listToString(topics) + " **" + AiModerateBotConstants.CONFIG_OUTPUT_CONTACTS
+                + "**=" + Util.listToString(contactsForOutput) + " **" + AiModerateBotConstants.CONFIG_OUTPUT_GROUPS
+                + "**=" + Util.listToString(groupsForOutput) + " **" + AiModerateBotConstants.CONFIG_WEEKDAYS + "**="
+                + Util.intArrayToString(weekdaysToRun) + " **" + AiModerateBotConstants.CONFIG_HOURS + "**="
+                + Util.intArrayToString(hoursToRun) + " **" + AiModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "**="
+                + sleepTimeInSeconds + " **" + AiModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "**="
+                + numberOfMessagesToRetrieve + " **" + AiModerateBotConstants.CONFIG_PERSIST_STATE + "**="
+                + persistState + " **" + AiModerateBotConstants.CONFIG_OLLAMA_PORT + "**=" + ollamaPort + " **"
+                + AiModerateBotConstants.CONFIG_OLLAMA_MODELS + "**=" + Util.listToString(ollamaModels) + " **"
+                + AiModerateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "**=" + ollamaReadTimeoutMinutes + " **"
+                + AiModerateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "**=" + ollamaCooldownSeconds + " **"
+                + AiModerateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "**=" + maxPromptCharacterLimit
+                + " **" + AiModerateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "**=" + secretPromptMarker + " **"
+                + AiModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "**=" + Util.listToString(contactsForReporting)
+                + " **" + AiModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "**="
+                + Util.listToString(groupsForReporting), simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
 
@@ -483,8 +483,8 @@ public class AiModerateBot implements Runnable {
 
         if (aiResponse.isEmpty()) {
             Util.logError(
-                    "Ollama returned an empty response for model '" + model + "'! *Prompt (length = " + prompt.length()
-                            + " characters) started with:*\n"
+                    "Ollama returned an empty response for model '" + model + "'! **Prompt (length = " + prompt.length()
+                            + " characters) started with:**\n"
                             + (prompt.length() <= 200 ? prompt : prompt.substring(0, 200) + " [...]"),
                     simplexConnection, contactsForReporting, groupsForReporting);
             return -1;
@@ -506,10 +506,10 @@ public class AiModerateBot implements Runnable {
             return number;
         default:
             Util.logError(
-                    "Ollama returned an invalid response for model '" + model + "'!\n\n*Prompt (length = "
-                            + prompt.length() + " characters) started with:*\n"
+                    "Ollama returned an invalid response for model '" + model + "'!\n\n**Prompt (length = "
+                            + prompt.length() + " characters) started with:**\n"
                             + (prompt.length() <= 200 ? prompt : prompt.substring(0, 200) + " [...]")
-                            + "\n\n*Response started with:*\n"
+                            + "\n\n**Response started with:**\n"
                             + (aiResponse.length() <= 200 ? aiResponse : aiResponse.substring(0, 200) + " [...]"),
                     simplexConnection, contactsForReporting, groupsForReporting);
             return -1;
@@ -518,9 +518,9 @@ public class AiModerateBot implements Runnable {
 
     private void blockMember(GroupMessage groupMessage, String topicText, int evaluation, String aiResponse) {
 
-        final String messageToReport = "!6 Blocking! member *'" + groupMessage.getMember().getDisplayName() + "'* ["
-                + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess
-                + "'* because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
+        final String messageToReport = "!6 Blocking! member **'" + groupMessage.getMember().getDisplayName() + "'** ["
+                + groupMessage.getMember().getLocalName() + "] in group **'" + groupToProcess
+                + "'** because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
                 + (topicText.length() <= 200 ? topicText : topicText.substring(0, 200) + " [...]") + "\"_!"
                 + (aiResponse.length() <= 1 ? ""
                         : "\n\nADDITIONAL A.I. OUTPUT:\n"
@@ -551,9 +551,9 @@ public class AiModerateBot implements Runnable {
 
     private void downgradeMember(GroupMessage groupMessage, String topicText, int evaluation, String aiResponse) {
 
-        final String messageToReport = "!6 Downgrading! member *'" + groupMessage.getMember().getDisplayName() + "'* ["
-                + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess
-                + "'* because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
+        final String messageToReport = "!6 Downgrading! member **'" + groupMessage.getMember().getDisplayName()
+                + "'** [" + groupMessage.getMember().getLocalName() + "] in group **'" + groupToProcess
+                + "'** because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
                 + (topicText.length() <= 200 ? topicText : topicText.substring(0, 200) + " [...]") + "\"_!"
                 + (aiResponse.length() <= 1 ? ""
                         : "\n\nADDITIONAL A.I. OUTPUT:\n"
@@ -579,18 +579,19 @@ public class AiModerateBot implements Runnable {
                     GroupMember.ROLE_OBSERVER, contactsForReporting, groupsForReporting);
         } else {
             Util.logWarning(
-                    "Member *'" + groupMessage.getMember().getDisplayName() + "'* ["
-                            + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess
-                            + "'* is already downgraded or not present!",
+                    "Member **'" + groupMessage.getMember().getDisplayName() + "'** ["
+                            + groupMessage.getMember().getLocalName() + "] in group **'" + groupToProcess
+                            + "'** is already downgraded or not present!",
                     simplexConnection, contactsForReporting, groupsForReporting);
         }
     }
 
     private void moderateMessage(GroupMessage groupMessage, String topicText, int evaluation, String aiResponse) {
 
-        final String messageToReport = "!4 Moderating! message of member *'" + groupMessage.getMember().getDisplayName()
-                + "'* [" + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess
-                + "'* because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
+        final String messageToReport = "!4 Moderating! message of member **'"
+                + groupMessage.getMember().getDisplayName() + "'** [" + groupMessage.getMember().getLocalName()
+                + "] in group **'" + groupToProcess + "'** because of evaluation "
+                + Topic.getTextForThreshold(evaluation) + " for topic _\""
                 + (topicText.length() <= 200 ? topicText : topicText.substring(0, 200) + " [...]") + "\"_!"
                 + (aiResponse.length() <= 1 ? ""
                         : "\n\nADDITIONAL A.I. OUTPUT:\n"
@@ -613,9 +614,9 @@ public class AiModerateBot implements Runnable {
 
     private void reportMessage(GroupMessage groupMessage, String topicText, int evaluation, String aiResponse) {
 
-        final String messageToReport = "!5 Reporting! message of member *'" + groupMessage.getMember().getDisplayName()
-                + "'* [" + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess
-                + "'* because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
+        final String messageToReport = "!5 Reporting! message of member **'" + groupMessage.getMember().getDisplayName()
+                + "'** [" + groupMessage.getMember().getLocalName() + "] in group **'" + groupToProcess
+                + "'** because of evaluation " + Topic.getTextForThreshold(evaluation) + " for topic _\""
                 + (topicText.length() <= 200 ? topicText : topicText.substring(0, 200) + " [...]") + "\"_!"
                 + (aiResponse.length() <= 1 ? ""
                         : "\n\nADDITIONAL A.I. OUTPUT:\n"
