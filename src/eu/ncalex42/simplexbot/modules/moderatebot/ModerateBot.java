@@ -412,27 +412,29 @@ public class ModerateBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(ModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + ModerateBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + ModerateBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + ModerateBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
-                + ModerateBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
-                + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
-                + ModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
-                + ModerateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState + " *"
-                + ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting) + " *"
-                + ModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting)
-                + " *blockImages*=" + blockImages + " *blockVideos*=" + blockVideos + " *blockFiles*=" + blockFiles
-                + " *blockLinks*=" + blockLinks + " *blockVoice*=" + blockVoice + " *keywordBlockBlacklist.size*="
-                + keywordBlockBlacklist.size() + " *regexBlockBlacklist.size*=" + regexBlockBlacklist.size()
-                + " *userBlockBlacklist.size*=" + userBlockBlacklist.size() + " *moderateImages*=" + moderateImages
-                + " *moderateVideos*=" + moderateVideos + " *moderateFiles*=" + moderateFiles + " *moderateLinks*="
-                + moderateLinks + " *moderateVoice*=" + moderateVoice + " *keywordModerateBlacklist.size*="
-                + keywordModerateBlacklist.size() + " *regexModerateBlacklist.size*=" + regexModerateBlacklist.size()
-                + " *userModerateBlacklist.size*=" + userModerateBlacklist.size() + " *reportImages*=" + reportImages
-                + " *reportVideos*=" + reportVideos + " *reportFiles*=" + reportFiles + " *reportLinks*=" + reportLinks
-                + " *reportVoice*=" + reportVoice + " *keywordReportBlacklist.size*=" + keywordReportBlacklist.size()
-                + " *regexReportBlacklist.size*=" + regexReportBlacklist.size() + " *userReportBlacklist.size*="
+        Util.log(ModerateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + ModerateBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + ModerateBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + ModerateBotConstants.CONFIG_OUTPUT_CONTACTS + "**=" + Util.listToString(contactsForOutput) + " **"
+                + ModerateBotConstants.CONFIG_OUTPUT_GROUPS + "**=" + Util.listToString(groupsForOutput) + " **"
+                + ModerateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "**=" + sleepTimeInSeconds + " **"
+                + ModerateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "**=" + numberOfMessagesToRetrieve
+                + " **" + ModerateBotConstants.CONFIG_PERSIST_STATE + "**=" + persistState + " **"
+                + ModerateBotConstants.CONFIG_REPORT_TO_CONTACTS + "**=" + Util.listToString(contactsForReporting)
+                + " **" + ModerateBotConstants.CONFIG_REPORT_TO_GROUPS + "**=" + Util.listToString(groupsForReporting)
+                + " **blockImages**=" + blockImages + " **blockVideos**=" + blockVideos + " **blockFiles**="
+                + blockFiles + " **blockLinks**=" + blockLinks + " **blockVoice**=" + blockVoice
+                + " **keywordBlockBlacklist.size**=" + keywordBlockBlacklist.size() + " **regexBlockBlacklist.size**="
+                + regexBlockBlacklist.size() + " **userBlockBlacklist.size**=" + userBlockBlacklist.size()
+                + " **moderateImages**=" + moderateImages + " **moderateVideos**=" + moderateVideos
+                + " **moderateFiles**=" + moderateFiles + " **moderateLinks**=" + moderateLinks + " **moderateVoice**="
+                + moderateVoice + " **keywordModerateBlacklist.size**=" + keywordModerateBlacklist.size()
+                + " **regexModerateBlacklist.size**=" + regexModerateBlacklist.size()
+                + " **userModerateBlacklist.size**=" + userModerateBlacklist.size() + " **reportImages**="
+                + reportImages + " **reportVideos**=" + reportVideos + " **reportFiles**=" + reportFiles
+                + " **reportLinks**=" + reportLinks + " **reportVoice**=" + reportVoice
+                + " **keywordReportBlacklist.size**=" + keywordReportBlacklist.size()
+                + " **regexReportBlacklist.size**=" + regexReportBlacklist.size() + " **userReportBlacklist.size**="
                 + userReportBlacklist.size(), simplexConnection, contactsForReporting, groupsForReporting);
 
         final Thread moderateActionThread = new Thread(new ModerateActionRunnable(),
@@ -522,47 +524,47 @@ public class ModerateBot implements Runnable {
         }
 
         if (blockImages && SimplexConstants.VALUE_MSG_CONTENT_TYPE_IMAGE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*IMAGE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**IMAGE**"));
             return;
         }
 
         if (blockVideos && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VIDEO.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*VIDEO*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**VIDEO**"));
             return;
         }
 
         if (blockFiles && SimplexConstants.VALUE_MSG_CONTENT_TYPE_FILE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*FILE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**FILE**"));
             return;
         }
 
         if (blockLinks && SimplexConstants.VALUE_MSG_CONTENT_TYPE_LINK.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*LINK*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**LINK**"));
             return;
         }
 
         if (blockVoice && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VOICE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*VOICE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**VOICE**"));
             return;
         }
 
         for (final String keyword : keywordBlockBlacklist) {
             if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
-                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*KEYWORD* '" + keyword + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**KEYWORD** '" + keyword + "'"));
                 return;
             }
         }
 
         for (final String regex : regexBlockBlacklist.keySet()) {
             if (regexBlockBlacklist.get(regex).matcher(message.getText()).matches()) {
-                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*REGEX* '" + regex + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**REGEX** '" + regex + "'"));
                 return;
             }
         }
 
         for (final String user : userBlockBlacklist) {
             if (message.getMember().getDisplayName().equals(user)) {
-                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "*USER* '" + user + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.BLOCK, message, "**USER** '" + user + "'"));
                 return;
             }
         }
@@ -581,47 +583,48 @@ public class ModerateBot implements Runnable {
         }
 
         if (moderateImages && SimplexConstants.VALUE_MSG_CONTENT_TYPE_IMAGE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*IMAGE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**IMAGE**"));
             return;
         }
 
         if (moderateVideos && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VIDEO.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*VIDEO*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**VIDEO**"));
             return;
         }
 
         if (moderateFiles && SimplexConstants.VALUE_MSG_CONTENT_TYPE_FILE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*FILE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**FILE**"));
             return;
         }
 
         if (moderateLinks && SimplexConstants.VALUE_MSG_CONTENT_TYPE_LINK.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*LINK*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**LINK**"));
             return;
         }
 
         if (moderateVoice && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VOICE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*VOICE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**VOICE**"));
             return;
         }
 
         for (final String keyword : keywordModerateBlacklist) {
             if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
-                actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*KEYWORD* '" + keyword + "'"));
+                actionQueue
+                        .add(new MessageActionItem(ModerateAction.MODERATE, message, "**KEYWORD** '" + keyword + "'"));
                 return;
             }
         }
 
         for (final String regex : regexModerateBlacklist.keySet()) {
             if (regexModerateBlacklist.get(regex).matcher(message.getText()).matches()) {
-                actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*REGEX* '" + regex + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**REGEX** '" + regex + "'"));
                 return;
             }
         }
 
         for (final String user : userModerateBlacklist) {
             if (message.getMember().getDisplayName().equals(user)) {
-                actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "*USER* '" + user + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.MODERATE, message, "**USER** '" + user + "'"));
                 return;
             }
         }
@@ -630,47 +633,47 @@ public class ModerateBot implements Runnable {
     private void checkReporting(GroupMessage message) {
 
         if (reportImages && SimplexConstants.VALUE_MSG_CONTENT_TYPE_IMAGE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*IMAGE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**IMAGE**"));
             return;
         }
 
         if (reportVideos && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VIDEO.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*VIDEO*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**VIDEO**"));
             return;
         }
 
         if (reportFiles && SimplexConstants.VALUE_MSG_CONTENT_TYPE_FILE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*FILE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**FILE**"));
             return;
         }
 
         if (reportLinks && SimplexConstants.VALUE_MSG_CONTENT_TYPE_LINK.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*LINK*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**LINK**"));
             return;
         }
 
         if (reportVoice && SimplexConstants.VALUE_MSG_CONTENT_TYPE_VOICE.equalsIgnoreCase(message.getType())) {
-            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*VOICE*"));
+            actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**VOICE**"));
             return;
         }
 
         for (final String keyword : keywordReportBlacklist) {
             if (message.getText().toLowerCase(Locale.US).contains(keyword.toLowerCase(Locale.US))) {
-                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*KEYWORD* '" + keyword + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**KEYWORD** '" + keyword + "'"));
                 return;
             }
         }
 
         for (final String regex : regexReportBlacklist.keySet()) {
             if (regexReportBlacklist.get(regex).matcher(message.getText()).matches()) {
-                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*REGEX* '" + regex + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**REGEX** '" + regex + "'"));
                 return;
             }
         }
 
         for (final String user : userReportBlacklist) {
             if (message.getMember().getDisplayName().equals(user)) {
-                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "*USER* '" + user + "'"));
+                actionQueue.add(new MessageActionItem(ModerateAction.REPORT, message, "**USER** '" + user + "'"));
                 return;
             }
         }
@@ -717,9 +720,10 @@ public class ModerateBot implements Runnable {
 
         private void blockUser(GroupMessage groupMessage, String reason) {
 
-            final String messageToReport = "!6 Blocking! member *'" + groupMessage.getMember().getDisplayName() + "'* ["
-                    + groupMessage.getMember().getLocalName() + "] in group *'" + groupToProcess + "'* because of "
-                    + reason + " !" + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
+            final String messageToReport = "!6 Blocking! member **'" + groupMessage.getMember().getDisplayName()
+                    + "'** [" + groupMessage.getMember().getLocalName() + "] in group **'" + groupToProcess
+                    + "'** because of " + reason + " !"
+                    + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());
 
@@ -745,9 +749,9 @@ public class ModerateBot implements Runnable {
 
         private void moderateMessage(GroupMessage groupMessage, String reason) {
 
-            final String messageToReport = "!4 Moderating! message of member *'"
-                    + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
-                    + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
+            final String messageToReport = "!4 Moderating! message of member **'"
+                    + groupMessage.getMember().getDisplayName() + "'** [" + groupMessage.getMember().getLocalName()
+                    + "] in group **'" + groupToProcess + "'** because of " + reason + " !"
                     + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());
@@ -766,9 +770,9 @@ public class ModerateBot implements Runnable {
 
         private void reportMessage(GroupMessage groupMessage, String reason) {
 
-            final String messageToReport = "!5 Reporting! message of member *'"
-                    + groupMessage.getMember().getDisplayName() + "'* [" + groupMessage.getMember().getLocalName()
-                    + "] in group *'" + groupToProcess + "'* because of " + reason + " !"
+            final String messageToReport = "!5 Reporting! message of member **'"
+                    + groupMessage.getMember().getDisplayName() + "'** [" + groupMessage.getMember().getLocalName()
+                    + "] in group **'" + groupToProcess + "'** because of " + reason + " !"
                     + (groupMessage.getText().isEmpty() ? "" : "\n\nORIGINAL MESSAGE:");
 
             writeMessages(messageToReport, groupMessage.getText());

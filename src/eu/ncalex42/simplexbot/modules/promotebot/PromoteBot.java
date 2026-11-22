@@ -178,17 +178,17 @@ public class PromoteBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(PromoteBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + PromoteBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + PromoteBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + PromoteBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
-                + PromoteBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
-                + PromoteBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
-                + PromoteBotConstants.CONFIG_HOURS + "*=" + Util.intArrayToString(hoursToRun) + " *"
-                + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "*=" + sleepTimeInMinutes + " *"
-                + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "*=" + minWaitTimePerMemberInDays + " *"
-                + PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting) + " *"
-                + PromoteBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
+        Util.log(PromoteBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + PromoteBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + PromoteBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + PromoteBotConstants.CONFIG_OUTPUT_CONTACTS + "**=" + Util.listToString(contactsForOutput) + " **"
+                + PromoteBotConstants.CONFIG_OUTPUT_GROUPS + "**=" + Util.listToString(groupsForOutput) + " **"
+                + PromoteBotConstants.CONFIG_WEEKDAYS + "**=" + Util.intArrayToString(weekdaysToRun) + " **"
+                + PromoteBotConstants.CONFIG_HOURS + "**=" + Util.intArrayToString(hoursToRun) + " **"
+                + PromoteBotConstants.CONFIG_SLEEP_TIME_MINUTES + "**=" + sleepTimeInMinutes + " **"
+                + PromoteBotConstants.CONFIG_MIN_WAIT_TIME_DAYS + "**=" + minWaitTimePerMemberInDays + " **"
+                + PromoteBotConstants.CONFIG_REPORT_TO_CONTACTS + "**=" + Util.listToString(contactsForReporting)
+                + " **" + PromoteBotConstants.CONFIG_REPORT_TO_GROUPS + "**=" + Util.listToString(groupsForReporting),
                 simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
@@ -227,8 +227,8 @@ public class PromoteBot implements Runnable {
                                 }
                             } else {
                                 Util.logWarning(
-                                        "Member *'" + member.getDisplayName() + "'* [" + member.getLocalName()
-                                                + "] in group *'" + groupToProcess + "'* is not connected!",
+                                        "Member **'" + member.getDisplayName() + "'** [" + member.getLocalName()
+                                                + "] in group **'" + groupToProcess + "'** is not connected!",
                                         simplexConnection, contactsForReporting, groupsForReporting);
                             }
 

@@ -335,33 +335,34 @@ public class SummaryBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(SummaryBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + SummaryBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + SummaryBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + SummaryBotConstants.CONFIG_GROUP_CONTEXT + "*='"
-                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' *"
-                + SummaryBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
-                + SummaryBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
-                + SummaryBotConstants.CONFIG_WEEKDAYS_DAILY + "*=" + Util.intArrayToString(weekdaysToRunDaily) + " *"
-                + SummaryBotConstants.CONFIG_HOURS_DAILY + "*=" + Util.intArrayToString(hoursToRunDaily) + " *"
-                + SummaryBotConstants.CONFIG_WEEKDAYS_WEEKLY + "*=" + Util.intArrayToString(weekdaysToRunWeekly) + " *"
-                + SummaryBotConstants.CONFIG_HOURS_WEEKLY + "*=" + Util.intArrayToString(hoursToRunWeekly) + " *"
-                + SummaryBotConstants.CONFIG_SLEEP_TIME_MINUTES + "*=" + sleepTimeInMinutes + " *"
-                + SummaryBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
-                + SummaryBotConstants.CONFIG_REVEAL_MODEL_IN_OUTPUT + "*=" + revealModelInOutput + " *"
-                + SummaryBotConstants.CONFIG_SHOW_AI_WARNING_IN_OUTPUT + "*=" + showAiWarningInOutput + " *"
-                + SummaryBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
-                + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODELS + "*=" + Util.listToString(ollamaDefaultModels)
-                + " *" + SummaryBotConstants.CONFIG_OLLAMA_FALLBACK_MODELS + "*="
-                + Util.listToString(ollamaFallbackModels) + " *"
-                + SummaryBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
-                + SummaryBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
-                + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODEL_PROMPT_CHARACTER_LIMIT + "*="
-                + defaultModelPromptCharacterLimit + " *" + SummaryBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT
-                + "*=" + maxPromptCharacterLimit + " *" + SummaryBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*="
-                + secretPromptMarker + " *" + SummaryBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "*=" + outputLanguage
-                + " *" + SummaryBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
-                + " *" + SummaryBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
+        Util.log(SummaryBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + SummaryBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + SummaryBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + SummaryBotConstants.CONFIG_GROUP_CONTEXT + "**='"
+                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' **"
+                + SummaryBotConstants.CONFIG_OUTPUT_CONTACTS + "**=" + Util.listToString(contactsForOutput) + " **"
+                + SummaryBotConstants.CONFIG_OUTPUT_GROUPS + "**=" + Util.listToString(groupsForOutput) + " **"
+                + SummaryBotConstants.CONFIG_WEEKDAYS_DAILY + "**=" + Util.intArrayToString(weekdaysToRunDaily) + " **"
+                + SummaryBotConstants.CONFIG_HOURS_DAILY + "**=" + Util.intArrayToString(hoursToRunDaily) + " **"
+                + SummaryBotConstants.CONFIG_WEEKDAYS_WEEKLY + "**=" + Util.intArrayToString(weekdaysToRunWeekly)
+                + " **" + SummaryBotConstants.CONFIG_HOURS_WEEKLY + "**=" + Util.intArrayToString(hoursToRunWeekly)
+                + " **" + SummaryBotConstants.CONFIG_SLEEP_TIME_MINUTES + "**=" + sleepTimeInMinutes + " **"
+                + SummaryBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "**=" + numberOfMessagesToRetrieve + " **"
+                + SummaryBotConstants.CONFIG_REVEAL_MODEL_IN_OUTPUT + "**=" + revealModelInOutput + " **"
+                + SummaryBotConstants.CONFIG_SHOW_AI_WARNING_IN_OUTPUT + "**=" + showAiWarningInOutput + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_PORT + "**=" + ollamaPort + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODELS + "**=" + Util.listToString(ollamaDefaultModels)
+                + " **" + SummaryBotConstants.CONFIG_OLLAMA_FALLBACK_MODELS + "**="
+                + Util.listToString(ollamaFallbackModels) + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "**=" + ollamaReadTimeoutMinutes + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "**=" + ollamaCooldownSeconds + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_DEFAULT_MODEL_PROMPT_CHARACTER_LIMIT + "**="
+                + defaultModelPromptCharacterLimit + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "**=" + maxPromptCharacterLimit + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "**=" + secretPromptMarker + " **"
+                + SummaryBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "**=" + outputLanguage + " **"
+                + SummaryBotConstants.CONFIG_REPORT_TO_CONTACTS + "**=" + Util.listToString(contactsForReporting)
+                + " **" + SummaryBotConstants.CONFIG_REPORT_TO_GROUPS + "**=" + Util.listToString(groupsForReporting),
                 simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
@@ -447,10 +448,10 @@ public class SummaryBot implements Runnable {
         }
 
         Util.log(
-                "Generated prompt(s) for *" + dailyCounter + "* messages ("
-                        + ((0 == dailyCounter) ? 0 : dailyPrompt.length()) + " characters) of the last !5 day! and *"
-                        + weeklyCounter + "* messages (" + ((0 == weeklyCounter) ? 0 : weeklyPrompt.length())
-                        + " characters) of the last !3 week! from group *'" + groupToProcess + "'*",
+                "Generated prompt(s) for **" + dailyCounter + "** messages ("
+                        + ((0 == dailyCounter) ? 0 : dailyPrompt.length()) + " characters) of the last !5 day! and **"
+                        + weeklyCounter + "** messages (" + ((0 == weeklyCounter) ? 0 : weeklyPrompt.length())
+                        + " characters) of the last !3 week! from group **'" + groupToProcess + "'**",
                 simplexConnection, contactsForReporting, groupsForReporting);
     }
 
@@ -536,8 +537,8 @@ public class SummaryBot implements Runnable {
         }
 
         simplexConnection.sendToContactsAndGroups(
-                "*" + timestamp + "*" + "*[* !4 A.I. summary! " + (revealModelInOutput ? "by *" + model + "* " : "")
-                        + "of the last " + timeframe + " from group *'" + groupToProcess + "'* *]*\n\n"
+                "**" + timestamp + "[** !4 A.I. summary! " + (revealModelInOutput ? "by **" + model + "** " : "")
+                        + "of the last " + timeframe + " from group **'" + groupToProcess + "' ]**\n\n"
                         + sanitizeAiResponse(aiResponse),
                 contactsForOutput, groupsForOutput, contactsForReporting, groupsForReporting);
 
@@ -553,8 +554,7 @@ public class SummaryBot implements Runnable {
     private String sanitizeAiResponse(String aiResponse) {
         final String[] aiResponseSplit = aiResponse.split("</think>");
         final String aiResponseWithoutThinking = aiResponseSplit[aiResponseSplit.length - 1];
-        return aiResponseWithoutThinking.replace(secretPromptMarker, "").replace("**", "*")
-                .replaceAll("\n\\s*\\* ", "\n - ").strip();
+        return aiResponseWithoutThinking.replace(secretPromptMarker, "").replaceAll("\n\\s*\\* ", "\n - ").strip();
     }
 
     private boolean shouldRunDaily() {

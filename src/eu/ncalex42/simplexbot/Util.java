@@ -75,9 +75,9 @@ public class Util {
     private static String formatOutputMessage(String message) {
 
         final StringBuilder sb = new StringBuilder();
-        sb.append("*");
+        sb.append("**");
         sb.append(TimeUtil.formatUtcTimestamp());
-        sb.append("* ");
+        sb.append("** ");
         sb.append(message);
         return sb.toString();
     }
@@ -95,7 +95,7 @@ public class Util {
             sb.append("!4 ");
             break;
         default:
-            sb.append("*");
+            sb.append("**");
         }
         sb.append(TimeUtil.formatTimestamp());
 
@@ -108,13 +108,13 @@ public class Util {
             sb.append(" [WARN]!");
             break;
         default:
-            sb.append("*");
+            sb.append("**");
         }
 
         // module/thread name:
-        sb.append(" *");
+        sb.append(" **");
         sb.append(getThreadName());
-        sb.append("* ");
+        sb.append("** ");
 
         sb.append(message);
 

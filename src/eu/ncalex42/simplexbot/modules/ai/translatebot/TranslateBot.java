@@ -279,28 +279,28 @@ public class TranslateBot implements Runnable {
     @Override
     public void run() {
 
-        Util.log(TranslateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: *"
-                + TranslateBotConstants.CONFIG_PORT + "*=" + simplexConnection.getPort() + " *"
-                + TranslateBotConstants.CONFIG_GROUP + "*='" + groupToProcess + "' *"
-                + TranslateBotConstants.CONFIG_GROUP_CONTEXT + "*='"
-                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' *"
-                + TranslateBotConstants.CONFIG_OUTPUT_CONTACTS + "*=" + Util.listToString(contactsForOutput) + " *"
-                + TranslateBotConstants.CONFIG_OUTPUT_GROUPS + "*=" + Util.listToString(groupsForOutput) + " *"
-                + TranslateBotConstants.CONFIG_WEEKDAYS + "*=" + Util.intArrayToString(weekdaysToRun) + " *"
-                + TranslateBotConstants.CONFIG_HOURS + "*=" + Util.intArrayToString(hoursToRun) + " *"
-                + TranslateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "*=" + sleepTimeInSeconds + " *"
-                + TranslateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "*=" + numberOfMessagesToRetrieve + " *"
-                + TranslateBotConstants.CONFIG_ALWAYS_TRANSLATE + "*=" + alwaysTranslate + " *"
-                + TranslateBotConstants.CONFIG_PERSIST_STATE + "*=" + persistState + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_PORT + "*=" + ollamaPort + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_MODELS + "*=" + Util.listToString(ollamaModels) + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "*=" + ollamaReadTimeoutMinutes + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "*=" + ollamaCooldownSeconds + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "*=" + maxPromptCharacterLimit + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "*=" + secretPromptMarker + " *"
-                + TranslateBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "*=" + outputLanguage + " *"
-                + TranslateBotConstants.CONFIG_REPORT_TO_CONTACTS + "*=" + Util.listToString(contactsForReporting)
-                + " *" + TranslateBotConstants.CONFIG_REPORT_TO_GROUPS + "*=" + Util.listToString(groupsForReporting),
+        Util.log(TranslateBot.class.getSimpleName() + " " + Start.VERSION + " has started with config: **"
+                + TranslateBotConstants.CONFIG_PORT + "**=" + simplexConnection.getPort() + " **"
+                + TranslateBotConstants.CONFIG_GROUP + "**='" + groupToProcess + "' **"
+                + TranslateBotConstants.CONFIG_GROUP_CONTEXT + "**='"
+                + (groupContext.length() <= 100 ? groupContext : groupContext.substring(0, 100) + " [...]") + "' **"
+                + TranslateBotConstants.CONFIG_OUTPUT_CONTACTS + "**=" + Util.listToString(contactsForOutput) + " **"
+                + TranslateBotConstants.CONFIG_OUTPUT_GROUPS + "**=" + Util.listToString(groupsForOutput) + " **"
+                + TranslateBotConstants.CONFIG_WEEKDAYS + "**=" + Util.intArrayToString(weekdaysToRun) + " **"
+                + TranslateBotConstants.CONFIG_HOURS + "**=" + Util.intArrayToString(hoursToRun) + " **"
+                + TranslateBotConstants.CONFIG_SLEEP_TIME_SECONDS + "**=" + sleepTimeInSeconds + " **"
+                + TranslateBotConstants.CONFIG_NUMBER_OF_MESSAGES_TO_RETRIEVE + "**=" + numberOfMessagesToRetrieve
+                + " **" + TranslateBotConstants.CONFIG_ALWAYS_TRANSLATE + "**=" + alwaysTranslate + " **"
+                + TranslateBotConstants.CONFIG_PERSIST_STATE + "**=" + persistState + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_PORT + "**=" + ollamaPort + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_MODELS + "**=" + Util.listToString(ollamaModels) + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_READ_TIMEOUT_MINUTES + "**=" + ollamaReadTimeoutMinutes + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_COOLDOWN_SECONDS + "**=" + ollamaCooldownSeconds + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_MAX_PROMPT_CHARACTER_LIMIT + "**=" + maxPromptCharacterLimit
+                + " **" + TranslateBotConstants.CONFIG_OLLAMA_SECRET_PROMPT_MARKER + "**=" + secretPromptMarker + " **"
+                + TranslateBotConstants.CONFIG_OLLAMA_OUTPUT_LANGUAGE + "**=" + outputLanguage + " **"
+                + TranslateBotConstants.CONFIG_REPORT_TO_CONTACTS + "**=" + Util.listToString(contactsForReporting)
+                + " **" + TranslateBotConstants.CONFIG_REPORT_TO_GROUPS + "**=" + Util.listToString(groupsForReporting),
                 simplexConnection, contactsForReporting, groupsForReporting);
 
         try {
@@ -396,7 +396,7 @@ public class TranslateBot implements Runnable {
             }
 
             simplexConnection.sendToContactsAndGroups(
-                    "*[" + message.getItemTs() + "]*   " + formatName(message) + " :\n\n" + sanitizedResponse,
+                    "**[" + message.getItemTs() + "]**   " + formatName(message) + " :\n\n" + sanitizedResponse,
                     contactsForOutput, groupsForOutput, contactsForReporting, groupsForReporting);
         }
     }
@@ -446,6 +446,9 @@ public class TranslateBot implements Runnable {
         }
         if (!name.contains("_")) {
             return "_" + name + "_";
+        }
+        if (!name.contains("*")) {
+            return "*" + name + "*";
         }
         return name;
     }

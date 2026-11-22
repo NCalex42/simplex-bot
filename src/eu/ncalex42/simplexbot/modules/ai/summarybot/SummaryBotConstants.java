@@ -29,9 +29,9 @@ public class SummaryBotConstants {
     static final String CONFIG_REPORT_TO_CONTACTS = "report-to-contacts";
     static final String CONFIG_REPORT_TO_GROUPS = "report-to-groups";
 
-    static final String AI_WARNING_MESSAGE = "*WARNING:*\n\n*A.I. summary can contain wrong or even harmful information."
+    static final String AI_WARNING_MESSAGE = "**WARNING:**\n\n**A.I. summary can contain wrong or even harmful information."
             + " You are advised to critically evaluate the information and consult the original group for clarification on stated facts."
-            + " Exercise caution when interpreting and using the information provided.*\n\n*USE AT YOUR OWN RISK !!!*";
+            + " Exercise caution when interpreting and using the information provided.**\n\n**USE AT YOUR OWN RISK !!!**";
 
     static final String DEFAULT_PROMPT_MARKER = "]|-|[";
     static final String DEFAULT_RESPONSE_LANGUAGE = "English";
